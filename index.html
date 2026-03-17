@@ -1,0 +1,2252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EVENTRIX — Event Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:     #03000a;
+  --bg2:    #0e0018;
+  --bg3:    #140020;
+  --p900:   #4c1d95;
+  --p800:   #6b21a8;
+  --p700:   #7c3aed;
+  --p600:   #9333ea;
+  --p500:   #a855f7;
+  --p400:   #c084fc;
+  --p300:   #d946ef;
+  --p200:   #e879f9;
+  --p100:   #f0abfc;
+  --white:  #ffffff;
+  --text:   #c4aee0;
+  --muted:  #6b5a8a;
+  --mono:   'IBM Plex Mono', monospace;
+  --sans:   'DM Sans', sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.7;overflow-x:hidden;}
+
+/* ── PAGES ── */
+.page{display:none;min-height:100vh;}
+.page.active{display:block;}
+
+/* ── SHARED NAV ── */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:200;height:56px;background:rgba(3,0,10,.92);backdrop-filter:blur(14px);border-bottom:1px solid rgba(76,29,149,.25);display:flex;align-items:center;justify-content:space-between;padding:0 32px;}
+.topbar-brand{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:5px;background:linear-gradient(90deg,var(--p400),var(--p200));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;cursor:pointer;}
+.topbar-nav{display:flex;align-items:center;gap:8px;}
+.topbar-nav a,.topbar-nav button{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-decoration:none;background:none;border:none;cursor:pointer;padding:6px 14px;border-radius:6px;transition:all .15s;text-transform:uppercase;}
+.topbar-nav a:hover,.topbar-nav button:hover{color:var(--p400);background:rgba(124,58,237,.1);}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:10px 24px;border-radius:8px;border:none;cursor:pointer;transition:all .2s;text-decoration:none;}
+.btn-primary{background:var(--p700);color:#fff;}
+.btn-primary:hover{background:var(--p600);box-shadow:0 0 24px rgba(124,58,237,.4);}
+.btn-outline{background:transparent;color:var(--p400);border:1px solid rgba(124,58,237,.5);}
+.btn-outline:hover{background:rgba(124,58,237,.1);border-color:var(--p700);}
+.btn-sm{padding:7px 16px;font-size:10px;}
+
+/* ══════════════════════════════════════
+   LANDING PAGE
+══════════════════════════════════════ */
+#landing{background:var(--bg);}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;padding:80px 64px 0;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 60% 50%,rgba(124,58,237,.12) 0%,transparent 70%),radial-gradient(ellipse 40% 80% at 5% 30%,rgba(168,85,247,.06) 0%,transparent 60%);pointer-events:none;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(76,29,149,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(76,29,149,.05) 1px,transparent 1px);background-size:56px 56px;pointer-events:none;}
+.hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1200px;margin:0 auto;width:100%;}
+.hero-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:5px;color:var(--p700);text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;gap:12px;}
+.hero-eyebrow::before{content:'';width:28px;height:1px;background:var(--p700);}
+.hero-title{font-family:var(--mono);font-size:clamp(40px,5vw,68px);font-weight:700;letter-spacing:4px;line-height:1.05;margin-bottom:12px;}
+.hero-title span{background:linear-gradient(135deg,var(--p400),var(--p200),var(--p500));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-family:var(--mono);font-size:10px;letter-spacing:4px;color:var(--p800);text-transform:uppercase;margin-bottom:28px;}
+.hero-desc{font-size:16px;color:var(--muted);max-width:440px;margin-bottom:40px;line-height:1.8;}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;}
+.hero-stats{display:flex;gap:32px;margin-top:48px;}
+.hero-stat label{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--p900);text-transform:uppercase;display:block;margin-bottom:4px;}
+.hero-stat span{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--p400);}
+.hero-visual{display:flex;justify-content:center;align-items:center;}
+.hero-visual svg{filter:drop-shadow(0 0 60px rgba(168,85,247,.3));animation:float 4s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+
+/* COMO FUNCIONA */
+.section-lp{padding:100px 64px;max-width:1200px;margin:0 auto;}
+.section-label{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--p700);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+.section-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--p900),transparent);}
+.section-title{font-family:var(--mono);font-size:clamp(26px,3vw,40px);font-weight:700;color:var(--white);margin-bottom:14px;letter-spacing:1px;}
+.section-desc{font-size:15px;color:var(--muted);max-width:560px;margin-bottom:64px;line-height:1.8;}
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.step-card{background:rgba(14,0,24,.7);border:1px solid rgba(76,29,149,.3);border-radius:14px;padding:32px 28px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s;}
+.step-card:hover{border-color:var(--p700);transform:translateY(-4px);}
+.step-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--p700),transparent);opacity:0;transition:opacity .2s;}
+.step-card:hover::before{opacity:1;}
+.step-num{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--p800);text-transform:uppercase;margin-bottom:16px;}
+.step-icon{font-size:32px;margin-bottom:16px;}
+.step-card h3{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--white);letter-spacing:1px;margin-bottom:10px;}
+.step-card p{font-size:13px;color:var(--muted);line-height:1.7;}
+
+/* PLANOS */
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.plan-card{background:rgba(14,0,24,.7);border:1px solid rgba(76,29,149,.3);border-radius:14px;padding:36px 28px;position:relative;transition:border-color .2s,transform .2s;}
+.plan-card:hover{transform:translateY(-4px);}
+.plan-card.featured{border-color:var(--p700);background:rgba(124,58,237,.08);}
+.plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--p700);font-family:var(--mono);font-size:9px;letter-spacing:2px;color:#fff;padding:4px 16px;border-radius:100px;text-transform:uppercase;}
+.plan-name{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--p600);text-transform:uppercase;margin-bottom:12px;}
+.plan-price{font-family:var(--mono);font-size:42px;font-weight:700;color:var(--white);margin-bottom:4px;line-height:1;}
+.plan-price span{font-size:14px;color:var(--muted);font-weight:400;}
+.plan-desc{font-size:13px;color:var(--muted);margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid rgba(76,29,149,.2);}
+.plan-features{list-style:none;margin-bottom:32px;}
+.plan-features li{font-size:13px;color:var(--text);padding:7px 0;display:flex;align-items:center;gap:10px;}
+.plan-features li::before{content:'·';color:var(--p600);font-family:var(--mono);font-size:18px;line-height:1;}
+
+/* FOOTER landing */
+.footer-lp{border-top:1px solid rgba(76,29,149,.2);padding:48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.footer-brand{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:6px;background:linear-gradient(90deg,var(--p800),var(--p600));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.footer-lp p{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p900);}
+
+/* ══════════════════════════════════════
+   LOGIN PAGE
+══════════════════════════════════════ */
+#login{display:none;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);position:relative;overflow:hidden;}
+#login.active{display:flex;}
+#login::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(124,58,237,.1) 0%,transparent 70%);pointer-events:none;}
+#login::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(76,29,149,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(76,29,149,.05) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;}
+.login-box{position:relative;z-index:1;background:rgba(14,0,24,.9);border:1px solid rgba(76,29,149,.4);border-radius:20px;padding:56px 48px;width:100%;max-width:440px;backdrop-filter:blur(20px);}
+.login-logo{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:6px;background:linear-gradient(90deg,var(--p400),var(--p200));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;margin-bottom:8px;}
+.login-sub{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--p800);text-align:center;text-transform:uppercase;margin-bottom:40px;}
+.form-group{margin-bottom:20px;}
+.form-group label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--p600);text-transform:uppercase;margin-bottom:8px;}
+.form-group input{width:100%;background:rgba(3,0,10,.8);border:1px solid rgba(76,29,149,.4);border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:13px;color:var(--white);outline:none;transition:border-color .15s;}
+.form-group input:focus{border-color:var(--p700);box-shadow:0 0 0 3px rgba(124,58,237,.15);}
+.form-group input::placeholder{color:var(--p900);}
+.login-hint{font-family:var(--mono);font-size:10px;color:var(--p900);text-align:center;margin-bottom:28px;padding:10px;background:rgba(76,29,149,.1);border-radius:6px;border:1px solid rgba(76,29,149,.2);}
+.login-hint span{color:var(--p600);}
+.btn-login{width:100%;padding:14px;font-size:12px;letter-spacing:3px;margin-top:8px;}
+.login-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:10px 14px;border-radius:6px;margin-bottom:16px;display:none;}
+.login-back{display:block;text-align:center;margin-top:20px;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);cursor:pointer;background:none;border:none;transition:color .15s;}
+.login-back:hover{color:var(--p400);}
+
+/* ══════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════ */
+#dashboard{display:none;}
+#dashboard.active{display:flex;min-height:100vh;}
+
+.dash-sidebar{width:220px;background:var(--bg2);border-right:1px solid rgba(76,29,149,.25);display:flex;flex-direction:column;padding:0;position:fixed;top:0;left:0;bottom:0;z-index:150;}
+.dash-sidebar-brand{padding:18px 20px;border-bottom:1px solid rgba(76,29,149,.2);display:flex;align-items:center;gap:10px;height:56px;}
+.dash-sidebar-brand span{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:4px;background:linear-gradient(90deg,var(--p400),var(--p200));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.dash-nav{flex:1;padding:20px 0;overflow-y:auto;}
+.dash-nav-group{margin-bottom:4px;}
+.dash-nav-label{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--p900);text-transform:uppercase;padding:8px 20px 4px;}
+.dash-nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all .15s;}
+.dash-nav-item:hover{color:var(--p400);background:rgba(124,58,237,.06);}
+.dash-nav-item.active{color:var(--p400);border-left-color:var(--p700);background:rgba(124,58,237,.08);}
+.dash-nav-item .icon{font-size:14px;width:18px;text-align:center;}
+.dash-footer{padding:16px 20px;border-top:1px solid rgba(76,29,149,.2);}
+.dash-user{display:flex;align-items:center;gap:10px;}
+.dash-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--p700),var(--p500));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.dash-user-info{min-width:0;}
+.dash-user-info strong{display:block;font-family:var(--mono);font-size:10px;color:var(--p400);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dash-user-info span{font-family:var(--mono);font-size:8px;color:var(--p900);letter-spacing:1px;}
+
+.dash-main{margin-left:220px;flex:1;display:flex;flex-direction:column;}
+.dash-topbar{height:56px;background:rgba(3,0,10,.9);backdrop-filter:blur(14px);border-bottom:1px solid rgba(76,29,149,.2);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100;}
+.dash-topbar-left{display:flex;flex-direction:column;}
+.dash-topbar-left h1{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--white);letter-spacing:1px;}
+.dash-topbar-left span{font-family:var(--mono);font-size:9px;color:var(--p800);letter-spacing:2px;}
+.dash-topbar-right{display:flex;align-items:center;gap:12px;}
+.live-badge{display:flex;align-items:center;gap:6px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);border-radius:100px;padding:4px 12px;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:#4ade80;text-transform:uppercase;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse-green 1.5s ease-in-out infinite;}
+@keyframes pulse-green{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.3);}}
+
+.dash-content{padding:28px;flex:1;}
+
+/* Sub-pages do dashboard */
+.dash-page{display:none;}
+.dash-page.active{display:block;}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.kpi-card{background:rgba(14,0,24,.8);border:1px solid rgba(76,29,149,.3);border-radius:12px;padding:20px;position:relative;overflow:hidden;transition:border-color .2s;}
+.kpi-card:hover{border-color:var(--p700);}
+.kpi-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--p700),transparent);}
+.kpi-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p700);text-transform:uppercase;margin-bottom:8px;}
+.kpi-value{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--white);margin-bottom:4px;line-height:1;}
+.kpi-delta{font-family:var(--mono);font-size:10px;color:#4ade80;}
+.kpi-delta.down{color:#f87171;}
+
+/* CHARTS ROW */
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;}
+.chart-card{background:rgba(14,0,24,.8);border:1px solid rgba(76,29,149,.3);border-radius:12px;padding:20px;}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.chart-title{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--white);letter-spacing:1px;}
+.chart-sub{font-family:var(--mono);font-size:9px;color:var(--p800);letter-spacing:1px;margin-top:2px;}
+.chart-canvas-wrap{position:relative;height:200px;}
+
+/* HEATMAP */
+.heatmap-wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px;}
+.heatmap-zone{border-radius:8px;padding:14px 10px;text-align:center;border:1px solid rgba(76,29,149,.3);transition:transform .15s;}
+.heatmap-zone:hover{transform:scale(1.04);}
+.hz-name{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p400);text-transform:uppercase;margin-bottom:6px;}
+.hz-val{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--white);}
+.hz-pct{font-family:var(--mono);font-size:9px;margin-top:4px;}
+
+/* RANKING TABLE */
+.rank-table{width:100%;border-collapse:collapse;font-size:13px;}
+.rank-table th{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p600);text-transform:uppercase;padding:10px 14px;border-bottom:1px solid rgba(76,29,149,.3);text-align:left;}
+.rank-table td{padding:10px 14px;border-bottom:1px solid rgba(76,29,149,.1);color:var(--text);vertical-align:middle;}
+.rank-table tr:hover td{background:rgba(124,58,237,.04);}
+.rank-bar-wrap{display:flex;align-items:center;gap:10px;}
+.rank-bar{height:6px;border-radius:100px;background:linear-gradient(90deg,var(--p700),var(--p400));flex-shrink:0;}
+.rank-num{font-family:var(--mono);font-size:11px;color:var(--p700);font-weight:600;min-width:24px;}
+
+/* METRICS ROW */
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.metric-card{background:rgba(14,0,24,.8);border:1px solid rgba(76,29,149,.3);border-radius:12px;padding:18px;display:flex;align-items:center;gap:14px;}
+.metric-icon{font-size:22px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(124,58,237,.15);border-radius:8px;flex-shrink:0;}
+.metric-info label{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--p800);text-transform:uppercase;display:block;margin-bottom:4px;}
+.metric-info span{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--white);}
+.metric-info small{font-family:var(--mono);font-size:9px;color:#4ade80;display:block;margin-top:2px;}
+
+/* BOTTOM ROW */
+.bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+/* ══════════════════════════════════════
+   AJUDA PAGE
+══════════════════════════════════════ */
+#ajuda{display:none;}
+#ajuda.active{display:flex;min-height:100vh;}
+.ajuda-sidebar{width:220px;background:var(--bg2);border-right:1px solid rgba(76,29,149,.25);padding:80px 0 20px;position:fixed;top:0;left:0;bottom:0;}
+.ajuda-nav-item{display:block;padding:10px 24px;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;border-left:2px solid transparent;transition:all .15s;}
+.ajuda-nav-item:hover{color:var(--p400);background:rgba(124,58,237,.06);}
+.ajuda-nav-item.active{color:var(--p400);border-left-color:var(--p700);}
+.ajuda-main{margin-left:220px;flex:1;padding:80px 60px 60px;max-width:900px;}
+.ajuda-hero{margin-bottom:56px;}
+.ajuda-hero h1{font-family:var(--mono);font-size:clamp(26px,3vw,38px);font-weight:700;color:var(--white);letter-spacing:2px;margin-bottom:10px;}
+.ajuda-hero p{font-size:15px;color:var(--muted);max-width:500px;line-height:1.8;}
+.faq-section{margin-bottom:48px;}
+.faq-section h2{font-family:var(--mono);font-size:12px;letter-spacing:3px;color:var(--p500);text-transform:uppercase;padding-bottom:12px;border-bottom:1px solid rgba(76,29,149,.3);margin-bottom:20px;}
+.faq-item{border:1px solid rgba(76,29,149,.2);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;cursor:pointer;font-size:14px;color:var(--text);transition:background .15s;user-select:none;}
+.faq-q:hover{background:rgba(124,58,237,.06);}
+.faq-q span{font-family:var(--mono);font-size:14px;color:var(--p500);transition:transform .2s;}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;}
+.faq-a.open{max-height:300px;padding:0 20px 18px;}
+.faq-a p{font-size:13px;color:var(--muted);line-height:1.8;}
+.faq-q span.open{transform:rotate(45deg);}
+.help-card{background:rgba(14,0,24,.7);border:1px solid rgba(76,29,149,.3);border-radius:12px;padding:24px;margin-bottom:14px;display:flex;gap:16px;align-items:flex-start;}
+.help-card-icon{font-size:24px;flex-shrink:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:rgba(124,58,237,.12);border-radius:8px;}
+.help-card h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--white);margin-bottom:6px;}
+.help-card p{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* ── ANIM ── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.fade-in{animation:fadeIn .5s ease forwards;}
+.fade-in-d1{animation-delay:.1s;opacity:0;}
+.fade-in-d2{animation-delay:.2s;opacity:0;}
+.fade-in-d3{animation-delay:.3s;opacity:0;}
+.fade-in-d4{animation-delay:.4s;opacity:0;}
+
+/* ══════════════════════════════════════
+   PERFIL — PAINEL LATERAL DESLIZANTE
+══════════════════════════════════════ */
+.profile-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:500;opacity:0;pointer-events:none;transition:opacity .3s;}
+.profile-overlay.open{opacity:1;pointer-events:all;}
+
+.profile-panel{position:fixed;top:0;right:-480px;bottom:0;width:460px;background:var(--bg2);border-left:1px solid rgba(76,29,149,.35);z-index:501;display:flex;flex-direction:column;transition:right .35s cubic-bezier(.4,0,.2,1);overflow:hidden;}
+.profile-panel.open{right:0;}
+
+.profile-panel-header{padding:20px 24px;border-bottom:1px solid rgba(76,29,149,.2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.profile-panel-title{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--p400);text-transform:uppercase;}
+.profile-close{background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px;line-height:1;padding:4px;border-radius:6px;transition:all .15s;}
+.profile-close:hover{color:var(--white);background:rgba(124,58,237,.15);}
+
+.profile-body{flex:1;overflow-y:auto;padding:0 0 24px;}
+
+/* Avatar section */
+.profile-avatar-section{padding:28px 24px 20px;display:flex;align-items:center;gap:18px;border-bottom:1px solid rgba(76,29,149,.15);}
+.profile-avatar-wrap{position:relative;flex-shrink:0;}
+.profile-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--p700),var(--p500));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:20px;font-weight:700;color:#fff;border:2px solid rgba(124,58,237,.4);overflow:hidden;}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.avatar-upload-btn{position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;border-radius:50%;background:var(--p700);border:2px solid var(--bg2);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;transition:background .15s;}
+.avatar-upload-btn:hover{background:var(--p600);}
+.avatar-upload-btn input{display:none;}
+.profile-avatar-info{}
+.profile-name-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.profile-name-display{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--white);}
+.plan-badge-inline{font-family:var(--mono);font-size:8px;letter-spacing:2px;padding:3px 8px;border-radius:100px;text-transform:uppercase;background:rgba(124,58,237,.2);color:var(--p400);border:1px solid rgba(124,58,237,.35);}
+.plan-badge-inline.pro{background:rgba(232,121,249,.15);color:var(--p200);border-color:rgba(232,121,249,.3);}
+.online-status{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:#4ade80;}
+.online-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:pulse-green 1.5s ease-in-out infinite;}
+
+/* Tabs */
+.profile-tabs{display:flex;border-bottom:1px solid rgba(76,29,149,.2);padding:0 24px;gap:0;flex-shrink:0;}
+.profile-tab{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;padding:12px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;}
+.profile-tab:hover{color:var(--p400);}
+.profile-tab.active{color:var(--p400);border-bottom-color:var(--p700);}
+
+/* Tab content */
+.profile-tab-content{display:none;padding:20px 24px;}
+.profile-tab-content.active{display:block;}
+
+/* Form fields */
+.pf-group{margin-bottom:16px;}
+.pf-group label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p700);text-transform:uppercase;margin-bottom:7px;}
+.pf-input{width:100%;background:rgba(3,0,10,.8);border:1px solid rgba(76,29,149,.35);border-radius:8px;padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--white);outline:none;transition:border-color .15s;}
+.pf-input:focus{border-color:var(--p700);box-shadow:0 0 0 3px rgba(124,58,237,.12);}
+.pf-input:disabled{color:var(--muted);cursor:default;}
+.pf-input::placeholder{color:var(--p900);}
+.pf-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.pf-select{width:100%;background:rgba(3,0,10,.8);border:1px solid rgba(76,29,149,.35);border-radius:8px;padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--white);outline:none;cursor:pointer;transition:border-color .15s;}
+.pf-select:focus{border-color:var(--p700);}
+
+/* Plan usage */
+.plan-usage-card{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.25);border-radius:10px;padding:16px;margin-bottom:14px;}
+.plan-usage-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.plan-usage-name{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--white);}
+.plan-usage-badge{font-family:var(--mono);font-size:8px;letter-spacing:2px;padding:3px 10px;border-radius:100px;background:rgba(232,121,249,.15);color:var(--p200);border:1px solid rgba(232,121,249,.3);}
+.usage-bar-wrap{margin-bottom:10px;}
+.usage-bar-label{display:flex;justify-content:space-between;margin-bottom:5px;}
+.usage-bar-label span{font-family:var(--mono);font-size:9px;color:var(--muted);}
+.usage-bar-label strong{font-family:var(--mono);font-size:9px;color:var(--p400);}
+.usage-bar-bg{height:6px;background:rgba(76,29,149,.3);border-radius:100px;overflow:hidden;}
+.usage-bar-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--p700),var(--p400));transition:width .6s ease;}
+
+/* Event history */
+.event-history-item{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(76,29,149,.12);}
+.event-history-item:last-child{border-bottom:none;}
+.event-hist-icon{width:36px;height:36px;border-radius:8px;background:rgba(124,58,237,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.event-hist-info{flex:1;min-width:0;}
+.event-hist-name{font-family:var(--mono);font-size:11px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.event-hist-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.event-hist-badge{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 8px;border-radius:100px;flex-shrink:0;}
+.ehb-ok{background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.2);}
+.ehb-old{background:rgba(76,29,149,.2);color:var(--p700);border:1px solid rgba(76,29,149,.3);}
+
+/* Notif toggles */
+.notif-item{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid rgba(76,29,149,.12);}
+.notif-item:last-child{border-bottom:none;}
+.notif-info{}
+.notif-info strong{display:block;font-family:var(--mono);font-size:11px;color:var(--white);margin-bottom:3px;}
+.notif-info span{font-size:12px;color:var(--muted);}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:rgba(76,29,149,.4);border-radius:100px;cursor:pointer;transition:background .2s;}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s;}
+.toggle input:checked+.toggle-slider{background:var(--p700);}
+.toggle input:checked+.toggle-slider::before{transform:translateX(18px);}
+
+/* Security */
+.security-item{background:rgba(14,0,24,.6);border:1px solid rgba(76,29,149,.2);border-radius:10px;padding:16px;margin-bottom:12px;}
+.security-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.security-item-header strong{font-family:var(--mono);font-size:11px;color:var(--white);}
+.sec-status{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 10px;border-radius:100px;}
+.sec-ok{background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.2);}
+.sec-off{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);}
+.security-item p{font-size:12px;color:var(--muted);line-height:1.5;}
+
+/* Save / logout buttons */
+.profile-footer{padding:16px 24px;border-top:1px solid rgba(76,29,149,.2);display:flex;flex-direction:column;gap:10px;flex-shrink:0;}
+.btn-save{width:100%;padding:11px;font-size:11px;letter-spacing:2px;}
+.btn-logout{width:100%;padding:10px;font-size:10px;letter-spacing:2px;background:transparent;color:#f87171;border:1px solid rgba(239,68,68,.3);border-radius:8px;font-family:var(--mono);cursor:pointer;transition:all .2s;text-transform:uppercase;}
+.btn-logout:hover{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.5);}
+
+/* Save toast */
+.save-toast{position:fixed;bottom:28px;right:28px;background:var(--p700);color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:2px;padding:10px 20px;border-radius:100px;opacity:0;pointer-events:none;transform:translateY(10px);transition:all .25s;z-index:600;}
+.save-toast.show{opacity:1;transform:translateY(0);}
+
+/* ══════════════════════════════════════
+   MODAL VENDAS
+══════════════════════════════════════ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:var(--bg2);border:1px solid rgba(124,58,237,.4);border-radius:18px;padding:48px 40px;max-width:440px;width:90%;text-align:center;transform:scale(.96);transition:transform .25s;}
+.modal-overlay.open .modal-box{transform:scale(1);}
+.modal-icon{font-size:48px;margin-bottom:16px;}
+.modal-title{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--white);letter-spacing:2px;margin-bottom:10px;}
+.modal-desc{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:28px;}
+.modal-phone{font-family:var(--mono);font-size:28px;font-weight:700;background:linear-gradient(90deg,var(--p400),var(--p200));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;}
+.modal-hours{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--p800);text-transform:uppercase;margin-bottom:28px;}
+.modal-close-btn{width:100%;padding:12px;font-size:11px;letter-spacing:2px;}
+
+/* ══════════════════════════════════════
+   PAGAMENTO
+══════════════════════════════════════ */
+#payment{background:var(--bg);}
+.payment-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:80px 24px 40px;position:relative;}
+.payment-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(124,58,237,.08) 0%,transparent 70%);pointer-events:none;}
+.payment-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:32px;max-width:860px;width:100%;position:relative;z-index:1;}
+.payment-summary{background:rgba(14,0,24,.8);border:1px solid rgba(76,29,149,.3);border-radius:16px;padding:32px;}
+.payment-summary-label{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--p700);text-transform:uppercase;margin-bottom:20px;}
+.payment-plan-name{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--white);margin-bottom:6px;}
+.payment-plan-price{font-family:var(--mono);font-size:40px;font-weight:700;background:linear-gradient(90deg,var(--p400),var(--p200));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.payment-plan-period{font-family:var(--mono);font-size:10px;color:var(--p800);letter-spacing:2px;margin-bottom:24px;}
+.payment-features{list-style:none;border-top:1px solid rgba(76,29,149,.2);padding-top:20px;}
+.payment-features li{font-size:13px;color:var(--text);padding:7px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(76,29,149,.1);}
+.payment-features li:last-child{border:none;}
+.payment-features li::before{content:'✓';color:#4ade80;font-family:var(--mono);font-size:11px;}
+.payment-secure{display:flex;align-items:center;gap:8px;margin-top:20px;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--p900);}
+
+.payment-form{background:rgba(14,0,24,.8);border:1px solid rgba(76,29,149,.3);border-radius:16px;padding:32px;}
+.payment-methods{display:flex;gap:10px;margin-bottom:24px;}
+.pay-method-btn{flex:1;padding:10px 6px;background:rgba(3,0,10,.6);border:1px solid rgba(76,29,149,.35);border-radius:8px;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);cursor:pointer;text-align:center;transition:all .15s;}
+.pay-method-btn.active{border-color:var(--p700);color:var(--p400);background:rgba(124,58,237,.1);}
+.pay-method-icon{font-size:18px;display:block;margin-bottom:4px;}
+.pay-panel{display:none;}
+.pay-panel.active{display:block;}
+
+/* PIX panel */
+.pix-qr{width:160px;height:160px;background:white;border-radius:12px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:80px;}
+.pix-code{background:rgba(3,0,10,.8);border:1px solid rgba(76,29,149,.3);border-radius:8px;padding:10px 14px;font-family:var(--mono);font-size:10px;color:var(--p500);word-break:break-all;text-align:center;margin-bottom:12px;cursor:pointer;}
+.pix-timer{font-family:var(--mono);font-size:12px;color:#fbbf24;text-align:center;margin-bottom:16px;}
+
+/* Boleto panel */
+.boleto-code{background:rgba(3,0,10,.8);border:1px solid rgba(76,29,149,.3);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--p400);word-break:break-all;margin-bottom:12px;cursor:pointer;text-align:center;}
+.boleto-info{font-size:12px;color:var(--muted);text-align:center;line-height:1.6;margin-bottom:16px;}
+
+/* Success screen */
+.payment-success{display:none;text-align:center;padding:40px 0;}
+.payment-success.show{display:block;}
+.success-icon{font-size:64px;margin-bottom:16px;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{transform:scale(0);}to{transform:scale(1);}}
+.success-title{font-family:var(--mono);font-size:24px;font-weight:700;color:#4ade80;letter-spacing:2px;margin-bottom:10px;}
+.success-desc{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:28px;}
+
+/* ══════════════════════════════════════
+   QR SCANNER
+══════════════════════════════════════ */
+#qrscanner{background:#000;}
+.qr-screen{min-height:100vh;display:flex;flex-direction:column;background:#000;color:#fff;position:relative;overflow:hidden;}
+.qr-header{padding:20px 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(3,0,10,.95);border-bottom:1px solid rgba(76,29,149,.3);z-index:10;}
+.qr-brand{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:4px;background:linear-gradient(90deg,var(--p400),var(--p200));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.qr-back{background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;}
+.qr-viewfinder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:24px;}
+.qr-frame-wrap{position:relative;}
+.qr-frame{width:240px;height:240px;border-radius:16px;background:rgba(14,0,24,.6);border:2px solid rgba(124,58,237,.5);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.qr-frame-corner{position:absolute;width:28px;height:28px;border-color:var(--p400);border-style:solid;}
+.qr-frame-corner.tl{top:8px;left:8px;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
+.qr-frame-corner.tr{top:8px;right:8px;border-width:3px 3px 0 0;border-radius:0 4px 0 0;}
+.qr-frame-corner.bl{bottom:8px;left:8px;border-width:0 0 3px 3px;border-radius:0 0 0 4px;}
+.qr-frame-corner.br{bottom:8px;right:8px;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
+.qr-scan-line{position:absolute;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--p400),transparent);animation:scanAnim 2s ease-in-out infinite;top:0;}
+@keyframes scanAnim{0%{top:10%;}50%{top:85%;}100%{top:10%;}}
+.qr-frame-icon{font-size:48px;opacity:.3;}
+.qr-hint{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;text-align:center;}
+.qr-sim-btns{display:flex;gap:12px;width:100%;max-width:320px;}
+.qr-sim-btn{flex:1;padding:14px;border-radius:10px;border:none;font-family:var(--mono);font-size:11px;letter-spacing:2px;font-weight:700;cursor:pointer;text-transform:uppercase;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.qr-sim-ok{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.4);color:#4ade80;}
+.qr-sim-ok:hover{background:rgba(74,222,128,.25);}
+.qr-sim-deny{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;}
+.qr-sim-deny:hover{background:rgba(239,68,68,.2);}
+
+/* Result overlay */
+.qr-result{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;z-index:20;opacity:0;pointer-events:none;transition:opacity .3s;}
+.qr-result.show{opacity:1;pointer-events:all;}
+.qr-result.success{background:rgba(0,20,0,.97);}
+.qr-result.denied{background:rgba(20,0,0,.97);}
+.qr-result-icon{font-size:72px;margin-bottom:16px;animation:popIn .4s cubic-bezier(.34,1.56,.64,1);}
+.qr-result-status{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;}
+.qr-result.success .qr-result-status{color:#4ade80;}
+.qr-result.denied .qr-result-status{color:#f87171;}
+.qr-ticket-card{background:rgba(14,0,24,.9);border:1px solid rgba(76,29,149,.4);border-radius:16px;padding:24px;width:100%;max-width:320px;margin-bottom:20px;}
+.qr-ticket-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--p700),var(--p500));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:20px;font-weight:700;color:#fff;margin:0 auto 16px;}
+.qr-ticket-name{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--white);text-align:center;margin-bottom:4px;}
+.qr-ticket-num{font-family:var(--mono);font-size:10px;color:var(--p600);letter-spacing:2px;text-align:center;margin-bottom:16px;}
+.qr-ticket-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.qr-ticket-field label{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--p800);text-transform:uppercase;display:block;margin-bottom:3px;}
+.qr-ticket-field span{font-family:var(--mono);font-size:12px;color:var(--white);}
+.qr-denied-reason{font-family:var(--mono);font-size:12px;color:#f87171;text-align:center;margin-bottom:16px;padding:10px 16px;background:rgba(239,68,68,.1);border-radius:8px;border:1px solid rgba(239,68,68,.2);}
+.qr-dismiss{padding:12px 32px;border-radius:10px;border:none;font-family:var(--mono);font-size:11px;letter-spacing:2px;font-weight:700;cursor:pointer;text-transform:uppercase;}
+.qr-result.success .qr-dismiss{background:#4ade80;color:#000;}
+.qr-result.denied .qr-dismiss{background:#f87171;color:#000;}
+
+/* ══════════════════════════════════════
+   IA CHAT
+══════════════════════════════════════ */
+.ia-msg{display:flex;gap:12px;align-items:flex-start;}
+.ia-msg.user{flex-direction:row-reverse;}
+.ia-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.ia-msg.bot .ia-avatar{background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);}
+.ia-msg.user .ia-avatar{background:rgba(14,0,24,.8);border:1px solid rgba(76,29,149,.3);font-family:var(--mono);font-size:10px;font-weight:700;color:var(--p400);}
+.ia-bubble{max-width:580px;padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.7;}
+.ia-msg.bot .ia-bubble{background:rgba(14,0,24,.8);border:1px solid rgba(76,29,149,.25);color:var(--text);border-radius:4px 12px 12px 12px;}
+.ia-msg.user .ia-bubble{background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);color:var(--white);border-radius:12px 4px 12px 12px;}
+.ia-chart-wrap{margin-top:12px;background:rgba(3,0,10,.6);border:1px solid rgba(76,29,149,.2);border-radius:10px;padding:14px;}
+.ia-chart-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p600);text-transform:uppercase;margin-bottom:10px;}
+.ia-typing{display:flex;gap:4px;align-items:center;padding:8px 0;}
+.ia-typing span{width:6px;height:6px;border-radius:50%;background:var(--p700);animation:typingDot 1.2s ease-in-out infinite;}
+.ia-typing span:nth-child(2){animation-delay:.2s;}
+.ia-typing span:nth-child(3){animation-delay:.4s;}
+@keyframes typingDot{0%,60%,100%{transform:translateY(0);opacity:.5;}30%{transform:translateY(-6px);opacity:1;}}
+.ia-suggestion-btn{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--p500);background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.25);border-radius:100px;padding:6px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.ia-suggestion-btn:hover{background:rgba(124,58,237,.18);color:var(--p300);}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--p900);border-radius:2px;}
+
+/* ── RESPONSIVE ── */
+/* ══════════════════════════════════════
+   MOBILE NAV HAMBÚRGUER
+══════════════════════════════════════ */
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px;border-radius:6px;background:none;border:none;transition:background .15s;}
+.hamburger:hover{background:rgba(124,58,237,.1);}
+.hamburger span{display:block;width:22px;height:2px;background:var(--p400);border-radius:2px;transition:all .25s;}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+.mobile-menu{display:none;position:fixed;top:56px;left:0;right:0;background:rgba(14,0,24,.98);backdrop-filter:blur(16px);border-bottom:1px solid rgba(76,29,149,.3);z-index:190;flex-direction:column;padding:16px;gap:8px;transform:translateY(-10px);opacity:0;pointer-events:none;transition:all .2s;}
+.mobile-menu.open{display:flex;transform:translateY(0);opacity:1;pointer-events:all;}
+.mobile-menu a,.mobile-menu button{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--text);text-decoration:none;background:none;border:none;cursor:pointer;padding:12px 16px;border-radius:8px;text-align:left;text-transform:uppercase;transition:background .15s;}
+.mobile-menu a:hover,.mobile-menu button:hover{background:rgba(124,58,237,.1);color:var(--p400);}
+.mobile-menu .mm-divider{height:1px;background:rgba(76,29,149,.2);margin:4px 0;}
+.mobile-menu .btn{justify-content:center;text-align:center;}
+
+/* DASHBOARD BOTTOM NAV (mobile) */
+.dash-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:150;background:rgba(14,0,24,.97);backdrop-filter:blur(14px);border-top:1px solid rgba(76,29,149,.25);padding:8px 0 env(safe-area-inset-bottom,8px);}
+.dash-bottom-nav-inner{display:flex;justify-content:space-around;align-items:center;}
+.dbn-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;cursor:pointer;border-radius:8px;transition:background .15s;min-width:48px;}
+.dbn-item:hover,.dbn-item.active{background:rgba(124,58,237,.12);}
+.dbn-item .dbn-icon{font-size:18px;line-height:1;}
+.dbn-item .dbn-label{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
+.dbn-item.active .dbn-label{color:var(--p400);}
+
+/* ══════════════════════════════════════
+   RESPONSIVO GERAL — ≤ 900px
+══════════════════════════════════════ */
+@media(max-width:900px){
+
+  /* ── TOPBAR ── */
+  .topbar{padding:0 16px;}
+  .topbar-nav{display:none;}
+  .hamburger{display:flex;}
+
+  /* ── LANDING HERO ── */
+  .hero{padding:72px 20px 48px;min-height:auto;}
+  .hero-inner{grid-template-columns:1fr;gap:40px;}
+  .hero-visual{display:none;}
+  .hero-title{font-size:clamp(34px,9vw,52px);}
+  .hero-stats{gap:20px;}
+  .hero-ctas{flex-direction:column;}
+  .hero-ctas .btn{text-align:center;justify-content:center;}
+
+  /* ── SEÇÕES LP ── */
+  .section-lp{padding:56px 20px;}
+  .steps-grid{grid-template-columns:1fr;gap:16px;}
+  .plans-grid{grid-template-columns:1fr;gap:16px;}
+  .footer-lp{flex-direction:column;gap:16px;text-align:center;padding:32px 20px;}
+
+  /* ── DASHBOARD ── */
+  .dash-sidebar{display:none;}
+  .dash-main{margin-left:0;}
+  .dash-bottom-nav{display:block;}
+  .dash-content{padding:16px 16px 80px;}
+  .dash-topbar{padding:0 16px;}
+  .kpi-grid{grid-template-columns:1fr 1fr;gap:12px;}
+  .kpi-value{font-size:20px;}
+  .charts-row{grid-template-columns:1fr;gap:12px;}
+  .metrics-row{grid-template-columns:1fr 1fr;gap:12px;}
+  .bottom-row{grid-template-columns:1fr;}
+  .heatmap-wrap{grid-template-columns:repeat(2,1fr);}
+  .chart-canvas-wrap{height:180px;}
+  .rank-table th:nth-child(5),.rank-table td:nth-child(5),
+  .rank-table th:nth-child(4),.rank-table td:nth-child(4){display:none;}
+
+  /* ── AJUDA ── */
+  .ajuda-sidebar{display:none;}
+  .ajuda-main{margin-left:0;padding:72px 20px 40px;}
+  .ajuda-hero h1{font-size:26px;}
+
+  /* ── PERFIL PANEL ── */
+  .profile-panel{width:100%;right:-100%;}
+  .profile-panel.open{right:0;}
+  .profile-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .profile-tab{white-space:nowrap;padding:12px 10px;font-size:8px;}
+  .pf-row{grid-template-columns:1fr;}
+
+  /* ── PAGAMENTO ── */
+  .payment-grid{grid-template-columns:1fr;}
+  .payment-wrap{padding:72px 16px 32px;}
+  .payment-summary{padding:20px;}
+  .payment-form{padding:20px;}
+  .payment-plan-price{font-size:30px;}
+
+  /* ── MODAL ── */
+  .modal-box{padding:32px 24px;}
+  .modal-phone{font-size:22px;}
+
+  /* ── DO-DONT ── */
+  .do-dont{grid-template-columns:1fr;}
+  .tom-grid{grid-template-columns:1fr;}
+  .app-list{grid-template-columns:1fr;}
+  .combo-grid{grid-template-columns:1fr;}
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVO — ≤ 480px (smartphones pequenos)
+══════════════════════════════════════ */
+@media(max-width:480px){
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .kpi-card{padding:14px;}
+  .kpi-value{font-size:18px;}
+  .kpi-label{font-size:8px;}
+  .metrics-row{grid-template-columns:1fr;}
+  .hero-title{font-size:32px;}
+  .section-title{font-size:24px;}
+  .payment-grid{gap:16px;}
+  .plan-card{padding:24px 20px;}
+  .plan-price{font-size:34px;}
+  .heatmap-wrap{grid-template-columns:1fr 1fr;}
+  .dash-topbar-left h1{font-size:12px;}
+  .live-badge span{display:none;}
+  .charts-row .chart-card:nth-child(2){display:none;}
+  .help-card{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     LANDING PAGE
+══════════════════════════════════════ -->
+<div id="landing" class="page active">
+  <!-- TOPBAR -->
+  <nav class="topbar">
+    <div class="topbar-brand" onclick="showPage('landing')">EVENTRIX</div>
+    <div class="topbar-nav">
+      <a href="#como-funciona">Como Funciona</a>
+      <a href="#planos">Planos</a>
+      <button onclick="showPage('ajuda')">Ajuda</button>
+      <button class="btn btn-outline btn-sm" onclick="showPage('login')">Entrar</button>
+      <button class="btn btn-primary btn-sm" onclick="showPage('login')">Começar Grátis</button>
+    </div>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#como-funciona" onclick="closeMobileMenu()">Como Funciona</a>
+    <a href="#planos" onclick="closeMobileMenu()">Planos</a>
+    <button onclick="closeMobileMenu();showPage('ajuda')">Ajuda</button>
+    <div class="mm-divider"></div>
+    <button class="btn btn-outline" onclick="closeMobileMenu();showPage('login')">Entrar</button>
+    <button class="btn btn-primary" onclick="closeMobileMenu();showPage('login')">Começar Grátis</button>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-inner">
+      <div class="fade-in">
+        <div class="hero-eyebrow">Event Intelligence Platform</div>
+        <h1 class="hero-title">Seu evento,<br><span>inteligente</span><br>em tempo real.</h1>
+        <div class="hero-sub">Dados · Decisão · Impacto</div>
+        <p class="hero-desc">Credenciais inteligentes e sensores estratégicos que transformam a circulação do seu evento em inteligência operacional, comercial e artística.</p>
+        <div class="hero-ctas">
+          <button class="btn btn-primary" onclick="showPage('login')">Acessar Demo →</button>
+          <a href="#como-funciona" class="btn btn-outline">Como Funciona</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><label>Cobertura</label><span>94%</span></div>
+          <div class="hero-stat"><label>Latência</label><span>99ms</span></div>
+          <div class="hero-stat"><label>Eventos</label><span>300+</span></div>
+        </div>
+      </div>
+      <div class="hero-visual fade-in fade-in-d2">
+        <!-- Logo V6 Radar animada -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 380" width="400" height="345">
+          <defs>
+            <radialGradient id="hbg" cx="50%" cy="42%" r="70%"><stop offset="0%" stop-color="#0e0018"/><stop offset="100%" stop-color="#03000a"/></radialGradient>
+            <radialGradient id="hnuc" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="40%" stop-color="#f0abfc"/><stop offset="100%" stop-color="#9333ea"/></radialGradient>
+            <radialGradient id="hrg" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#c084fc" stop-opacity=".3"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+            <linearGradient id="hwg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9333ea"/><stop offset="40%" stop-color="#e879f9"/><stop offset="70%" stop-color="#c084fc"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient>
+            <linearGradient id="hsf" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a855f7" stop-opacity=".35"/><stop offset="100%" stop-color="#6b21a8" stop-opacity="0"/></linearGradient>
+            <filter id="hg"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="hgm"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="hgs"><feGaussianBlur stdDeviation="20" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="htg"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <clipPath id="hrc"><circle cx="220" cy="152" r="100"/></clipPath>
+          </defs>
+          <rect width="440" height="380" fill="url(#hbg)" rx="18"/>
+          <circle cx="220" cy="152" r="110" fill="#6b21a8" opacity=".07" filter="url(#hgs)"/>
+          <g clip-path="url(#hrc)" opacity=".18" stroke="#a855f7" stroke-width=".6">
+            <line x1="160" y1="52" x2="160" y2="252"/><line x1="180" y1="52" x2="180" y2="252"/><line x1="200" y1="52" x2="200" y2="252"/><line x1="220" y1="52" x2="220" y2="252"/><line x1="240" y1="52" x2="240" y2="252"/><line x1="260" y1="52" x2="260" y2="252"/><line x1="280" y1="52" x2="280" y2="252"/>
+            <line x1="120" y1="92" x2="320" y2="92"/><line x1="120" y1="112" x2="320" y2="112"/><line x1="120" y1="132" x2="320" y2="132"/><line x1="120" y1="152" x2="320" y2="152"/><line x1="120" y1="172" x2="320" y2="172"/><line x1="120" y1="192" x2="320" y2="192"/><line x1="120" y1="212" x2="320" y2="212"/>
+          </g>
+          <circle cx="220" cy="152" r="96" fill="none" stroke="#4c1d95" stroke-width="1" opacity=".6"/>
+          <circle cx="220" cy="152" r="72" fill="none" stroke="#6b21a8" stroke-width="1" opacity=".7"/>
+          <circle cx="220" cy="152" r="48" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity=".8"/>
+          <circle cx="220" cy="152" r="24" fill="none" stroke="#9333ea" stroke-width="1.2" opacity=".9"/>
+          <line x1="220" y1="56" x2="220" y2="248" stroke="#4c1d95" stroke-width=".8" opacity=".5"/>
+          <line x1="124" y1="152" x2="316" y2="152" stroke="#4c1d95" stroke-width=".8" opacity=".5"/>
+          <path d="M220,152 L316,152 A96,96 0 0,0 288,74 Z" fill="url(#hsf)" opacity=".7"/>
+          <line x1="220" y1="152" x2="316" y2="152" stroke="#a855f7" stroke-width="1.5" opacity=".8" filter="url(#hg)"/>
+          <line x1="220" y1="152" x2="288" y2="74" stroke="#c084fc" stroke-width="1.5" opacity=".6" filter="url(#hg)"/>
+          <g clip-path="url(#hrc)">
+            <ellipse cx="220" cy="104" rx="28" ry="18" fill="#9333ea" opacity=".22" filter="url(#hgm)"/>
+            <ellipse cx="268" cy="148" rx="20" ry="24" fill="#7c3aed" opacity=".2" filter="url(#hgm)"/>
+            <ellipse cx="186" cy="188" rx="22" ry="16" fill="#6b21a8" opacity=".18" filter="url(#hg)"/>
+          </g>
+          <g filter="url(#hg)">
+            <circle cx="214" cy="100" r="3.5" fill="#f0abfc" opacity=".95"/>
+            <circle cx="228" cy="108" r="2.5" fill="#e879f9" opacity=".85"/>
+            <circle cx="220" cy="115" r="2" fill="#c084fc" opacity=".7"/>
+            <circle cx="265" cy="140" r="3" fill="#e879f9" opacity=".9"/>
+            <circle cx="272" cy="155" r="2.5" fill="#c084fc" opacity=".8"/>
+            <circle cx="258" cy="162" r="2" fill="#a855f7" opacity=".65"/>
+            <circle cx="184" cy="182" r="3" fill="#d946ef" opacity=".8"/>
+            <circle cx="196" cy="192" r="2" fill="#a855f7" opacity=".6"/>
+            <circle cx="172" cy="128" r="2" fill="#9333ea" opacity=".5"/>
+            <circle cx="244" cy="206" r="1.8" fill="#7c3aed" opacity=".45"/>
+          </g>
+          <circle cx="220" cy="152" r="16" fill="url(#hrg)" opacity=".6" filter="url(#hgm)"/>
+          <circle cx="220" cy="152" r="10" fill="#7c3aed" opacity=".9" filter="url(#hgm)"/>
+          <circle cx="220" cy="152" r="6" fill="#c084fc"/>
+          <circle cx="220" cy="152" r="3" fill="url(#hnuc)"/>
+          <circle cx="220" cy="152" r="100" fill="none" stroke="#7c3aed" stroke-width="1.8" opacity=".85" filter="url(#hg)"/>
+          <polyline points="112,44 98,44 98,60" fill="none" stroke="#7c3aed" stroke-width="1.6" opacity=".7"/>
+          <polyline points="328,44 342,44 342,60" fill="none" stroke="#7c3aed" stroke-width="1.6" opacity=".7"/>
+          <polyline points="112,260 98,260 98,244" fill="none" stroke="#7c3aed" stroke-width="1.6" opacity=".7"/>
+          <polyline points="328,260 342,260 342,244" fill="none" stroke="#7c3aed" stroke-width="1.6" opacity=".7"/>
+          <text x="102" y="42" font-family="'Courier New',monospace" font-size="7.5" fill="#9333ea" opacity=".7" letter-spacing="1">LIVE</text>
+          <text x="342" y="42" font-family="'Courier New',monospace" font-size="7.5" fill="#9333ea" opacity=".7" text-anchor="end" letter-spacing="1">EVT·03</text>
+          <text x="102" y="274" font-family="'Courier New',monospace" font-size="7.5" fill="#7c3aed" opacity=".55" letter-spacing="1">1.2K</text>
+          <text x="342" y="274" font-family="'Courier New',monospace" font-size="7.5" fill="#7c3aed" opacity=".55" text-anchor="end" letter-spacing="1">99ms</text>
+          <line x1="120" y1="278" x2="320" y2="278" stroke="#3b0764" stroke-width=".8" opacity=".8"/>
+          <text x="220" y="318" font-family="'Courier New',monospace" font-size="40" font-weight="700" letter-spacing="11" text-anchor="middle" fill="url(#hwg)" filter="url(#htg)">EVNTRX</text>
+          <text x="220" y="344" font-family="'Courier New',monospace" font-size="9.5" letter-spacing="5.5" text-anchor="middle" fill="#6b21a8" opacity=".85">EVENT INTELLIGENCE</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMO FUNCIONA -->
+  <div id="como-funciona" style="background:rgba(14,0,24,.4);border-top:1px solid rgba(76,29,149,.15);border-bottom:1px solid rgba(76,29,149,.15);">
+    <div class="section-lp">
+      <div class="section-label">Como Funciona</div>
+      <h2 class="section-title">De credencial a insight<br>em menos de 1 segundo.</h2>
+      <p class="section-desc">Três passos simples para transformar qualquer evento em uma plataforma de inteligência em tempo real.</p>
+      <div class="steps-grid">
+        <div class="step-card fade-in-d1">
+          <div class="step-num">01 · Instalar</div>
+          <div class="step-icon">📡</div>
+          <h3>Credenciais Inteligentes</h3>
+          <p>Distribuímos credenciais com sensores passivos para cada participante. Sem apps, sem fricção, sem configuração manual.</p>
+        </div>
+        <div class="step-card fade-in-d2">
+          <div class="step-num">02 · Coletar</div>
+          <div class="step-icon">🔄</div>
+          <h3>Captura em Tempo Real</h3>
+          <p>Sensores estratégicos mapeiam circulação, permanência e concentração em cada zona do evento a cada 99ms.</p>
+        </div>
+        <div class="step-card fade-in-d3">
+          <div class="step-num">03 · Decidir</div>
+          <div class="step-icon">📊</div>
+          <h3>Painel de Inteligência</h3>
+          <p>Dashboard ao vivo com heatmaps, fluxo por hora e ranking de zonas. Decisões operacionais em segundos, não em dias.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLANOS -->
+  <div id="planos">
+    <div class="section-lp">
+      <div class="section-label">Planos</div>
+      <h2 class="section-title">Escolha o plano<br>do seu evento.</h2>
+      <p class="section-desc">Desde festivais independentes até grandes produções. Todos os planos incluem painel em tempo real e suporte dedicado.</p>
+      <div class="plans-grid">
+        <div class="plan-card">
+          <div class="plan-name">Starter</div>
+          <div class="plan-price">R$2.490<span>/evento</span></div>
+          <p class="plan-desc">Ideal para eventos de até 2.000 pessoas.</p>
+          <ul class="plan-features">
+            <li>Até 2.000 credenciais</li>
+            <li>4 zonas monitoradas</li>
+            <li>Dashboard em tempo real</li>
+            <li>Relatório pós-evento</li>
+            <li>Suporte por e-mail</li>
+          </ul>
+          <button class="btn btn-outline" style="width:100%" onclick="showPayment('Starter','R$2.490')">Começar →</button>
+        </div>
+        <div class="plan-card featured">
+          <div class="plan-badge">Mais Popular</div>
+          <div class="plan-name">Pro</div>
+          <div class="plan-price">R$6.990<span>/evento</span></div>
+          <p class="plan-desc">Para eventos de até 10.000 pessoas com múltiplas zonas.</p>
+          <ul class="plan-features">
+            <li>Até 10.000 credenciais</li>
+            <li>Zonas ilimitadas</li>
+            <li>Dashboard + app mobile</li>
+            <li>Alertas em tempo real</li>
+            <li>API de integração</li>
+            <li>Suporte 24h no evento</li>
+          </ul>
+          <button class="btn btn-primary" style="width:100%" onclick="showPayment('Pro','R$6.990')">Começar →</button>
+        </div>
+        <div class="plan-card">
+          <div class="plan-name">Enterprise</div>
+          <div class="plan-price">Custom<span></span></div>
+          <p class="plan-desc">Para grandes festivais, arenas e produtoras com múltiplos eventos.</p>
+          <ul class="plan-features">
+            <li>Credenciais ilimitadas</li>
+            <li>Infraestrutura dedicada</li>
+            <li>White-label disponível</li>
+            <li>Integração com bilheteria</li>
+            <li>SLA garantido 99.9%</li>
+            <li>Customer Success dedicado</li>
+          </ul>
+          <button class="btn btn-outline" style="width:100%" onclick="openVendasModal()">Falar com Vendas →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer-lp">
+    <div class="footer-brand">EVENTRIX</div>
+    <p>© 2025 EVENTRIX · Event Intelligence · Todos os direitos reservados</p>
+    <div style="display:flex;gap:16px;">
+      <button onclick="showPage('ajuda')" style="background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p900);">AJUDA</button>
+      <button onclick="showPage('login')" style="background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p900);">LOGIN</button>
+    </div>
+  </footer>
+</div>
+
+<!-- ══════════════════════════════════════
+     LOGIN PAGE
+══════════════════════════════════════ -->
+<div id="login" class="page">
+  <nav class="topbar">
+    <div class="topbar-brand" onclick="showPage('landing')">EVENTRIX</div>
+    <div class="topbar-nav">
+      <button onclick="showPage('landing')" class="btn btn-outline btn-sm">← Voltar</button>
+    </div>
+  </nav>
+  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;position:relative;">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(124,58,237,.1) 0%,transparent 70%);pointer-events:none;"></div>
+    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(76,29,149,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(76,29,149,.05) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;"></div>
+    <div class="login-box fade-in">
+      <div class="login-logo">EVENTRIX</div>
+      <div class="login-sub">Acesse seu painel</div>
+      <div class="login-hint">Demo: <span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b4d5d0d9dddaf4d1c2d1dac0c6ddcc9ad7dbd9">[email&#160;protected]</a></span> / <span>demo1234</span></div>
+      <div class="login-error" id="loginError">Usuário ou senha incorretos.</div>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" id="loginEmail" placeholder="seu@email.com" value="admin@eventrix.com"/>
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" id="loginPass" placeholder="••••••••" value="demo1234" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <button class="btn btn-primary btn-login" onclick="doLogin()">Entrar no Painel →</button>
+      <button class="login-back" onclick="showPage('landing')">← Voltar para o site</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     DASHBOARD
+══════════════════════════════════════ -->
+<div id="dashboard" class="page">
+  <!-- SIDEBAR -->
+  <aside class="dash-sidebar">
+    <div class="dash-sidebar-brand">
+      <span>EVENTRIX</span>
+    </div>
+    <nav class="dash-nav">
+      <div class="dash-nav-group">
+        <div class="dash-nav-label">Principal</div>
+        <div class="dash-nav-item active" onclick="showDashPage('overview',this)"><span class="icon">📊</span>Visão Geral</div>
+        <div class="dash-nav-item" onclick="showDashPage('heatmap',this)"><span class="icon">🗺️</span>Mapa de Calor</div>
+        <div class="dash-nav-item" onclick="showDashPage('flow',this)"><span class="icon">📈</span>Fluxo por Hora</div>
+        <div class="dash-nav-item" onclick="showDashPage('ranking',this)"><span class="icon">🏆</span>Ranking de Zonas</div>
+        <div class="dash-nav-item" onclick="showDashPage('ia',this)"><span class="icon">🤖</span>Insights IA</div>
+      </div>
+      <div class="dash-nav-group">
+        <div class="dash-nav-label">Sistema</div>
+        <div class="dash-nav-item" onclick="showDashPage('metrics',this)"><span class="icon">⚡</span>Métricas Técnicas</div>
+        <div class="dash-nav-item" onclick="showPage('qrscanner')"><span class="icon">📷</span>Scanner QR</div>
+        <div class="dash-nav-item" onclick="showPage('ajuda')"><span class="icon">❓</span>Ajuda</div>
+        <div class="dash-nav-item" onclick="showPage('landing')"><span class="icon">↩</span>Sair</div>
+      </div>
+    </nav>
+    <div class="dash-footer">
+      <div class="dash-user" onclick="openProfile()" style="cursor:pointer;border-radius:8px;padding:4px;transition:background .15s;" onmouseover="this.style.background='rgba(124,58,237,.1)'" onmouseout="this.style.background='transparent'">
+        <div class="dash-avatar" id="sidebarAvatar">AD</div>
+        <div class="dash-user-info">
+          <strong id="sidebarName">Admin EVENTRIX</strong>
+          <span>Rock in Rio · 2025</span>
+        </div>
+        <span style="color:var(--p800);font-size:12px;margin-left:auto;">›</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div class="dash-topbar-left">
+        <h1 id="dashPageTitle">Visão Geral</h1>
+        <span id="dashPageSub">Rock in Rio 2025 · Dia 3 · Palco Mundo</span>
+      </div>
+      <div class="dash-topbar-right">
+        <div class="live-badge"><div class="live-dot"></div>Ao Vivo</div>
+        <button class="btn btn-outline btn-sm" onclick="refreshData()">↻ Atualizar</button>
+      </div>
+    </div>
+
+    <div class="dash-content">
+
+      <!-- OVERVIEW PAGE -->
+      <div id="dp-overview" class="dash-page active">
+        <div class="kpi-grid">
+          <div class="kpi-card fade-in"><div class="kpi-label">Total no Evento</div><div class="kpi-value" id="kpi-total">47.832</div><div class="kpi-delta">↑ +1.204 última hora</div></div>
+          <div class="kpi-card fade-in fade-in-d1"><div class="kpi-label">Zona mais Ativa</div><div class="kpi-value">Palco Mundo</div><div class="kpi-delta">12.400 pessoas · 26%</div></div>
+          <div class="kpi-card fade-in fade-in-d2"><div class="kpi-label">Cobertura GPS</div><div class="kpi-value">94.2%</div><div class="kpi-delta">↑ +0.3% vs ontem</div></div>
+          <div class="kpi-card fade-in fade-in-d3"><div class="kpi-label">Latência Média</div><div class="kpi-value">99ms</div><div class="kpi-delta">↓ Ótimo desempenho</div></div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card fade-in">
+            <div class="chart-header">
+              <div><div class="chart-title">Fluxo de Pessoas por Hora</div><div class="chart-sub">Entradas e saídas · Hoje</div></div>
+            </div>
+            <div class="chart-canvas-wrap"><canvas id="flowChart"></canvas></div>
+          </div>
+          <div class="chart-card fade-in fade-in-d1">
+            <div class="chart-header">
+              <div><div class="chart-title">Distribuição por Zona</div><div class="chart-sub">% do total · Agora</div></div>
+            </div>
+            <div class="chart-canvas-wrap"><canvas id="zoneChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card fade-in">
+            <div class="chart-header">
+              <div><div class="chart-title">Ranking de Zonas</div><div class="chart-sub">Pessoas agora · Tempo real</div></div>
+            </div>
+            <table class="rank-table">
+              <thead><tr><th>#</th><th>Zona</th><th>Pessoas</th><th>Ocupação</th><th>Tendência</th></tr></thead>
+              <tbody id="rankingTable"></tbody>
+            </table>
+          </div>
+          <div class="chart-card fade-in fade-in-d1">
+            <div class="chart-header">
+              <div><div class="chart-title">Métricas Técnicas</div><div class="chart-sub">Infraestrutura · Ao vivo</div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px;" id="techMetrics"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HEATMAP PAGE -->
+      <div id="dp-heatmap" class="dash-page">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Zona mais Quente</div><div class="kpi-value">Palco Mundo</div><div class="kpi-delta">↑ Alta densidade</div></div>
+          <div class="kpi-card"><div class="kpi-label">Zona mais Fria</div><div class="kpi-value">Área Kids</div><div class="kpi-delta">↓ Baixa ocupação</div></div>
+          <div class="kpi-card"><div class="kpi-label">Alerta de Lotação</div><div class="kpi-value" style="color:#f87171;">0 zonas</div><div class="kpi-delta">✓ Dentro do limite</div></div>
+          <div class="kpi-card"><div class="kpi-label">Atualização</div><div class="kpi-value">99ms</div><div class="kpi-delta">Tempo real</div></div>
+        </div>
+        <div class="chart-card" style="margin-bottom:16px;">
+          <div class="chart-header"><div><div class="chart-title">Mapa de Calor — Zonas do Evento</div><div class="chart-sub">Concentração de pessoas · Rock in Rio 2025</div></div></div>
+          <div class="heatmap-wrap" id="heatmapGrid"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header"><div><div class="chart-title">Histórico de Ocupação por Zona</div><div class="chart-sub">Últimas 8 horas</div></div></div>
+          <div class="chart-canvas-wrap"><canvas id="heatHistChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- FLOW PAGE -->
+      <div id="dp-flow" class="dash-page">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Pico do Dia</div><div class="kpi-value">22h00</div><div class="kpi-delta">51.200 pessoas simultâneas</div></div>
+          <div class="kpi-card"><div class="kpi-label">Total Entradas</div><div class="kpi-value">68.400</div><div class="kpi-delta">↑ +8% vs ontem</div></div>
+          <div class="kpi-card"><div class="kpi-label">Total Saídas</div><div class="kpi-value">20.568</div><div class="kpi-delta">Rotatividade normal</div></div>
+          <div class="kpi-card"><div class="kpi-label">Permanência Média</div><div class="kpi-value">4h 22min</div><div class="kpi-delta">↑ +18min vs ontem</div></div>
+        </div>
+        <div class="chart-card" style="margin-bottom:16px;">
+          <div class="chart-header"><div><div class="chart-title">Fluxo Detalhado por Hora</div><div class="chart-sub">Entradas · Saídas · Saldo acumulado</div></div></div>
+          <div style="height:260px;position:relative;"><canvas id="flowDetailChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header"><div><div class="chart-title">Tempo Médio de Permanência por Zona</div><div class="chart-sub">Em minutos · Hoje</div></div></div>
+          <div style="height:200px;position:relative;"><canvas id="durationChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- RANKING PAGE -->
+      <div id="dp-ranking" class="dash-page">
+        <div class="chart-card">
+          <div class="chart-header"><div><div class="chart-title">Ranking Completo de Zonas</div><div class="chart-sub">Ordenado por ocupação atual · Atualização a cada 99ms</div></div></div>
+          <table class="rank-table" style="margin-top:8px;">
+            <thead><tr><th>#</th><th>Zona</th><th>Pessoas Agora</th><th>Capacidade</th><th>Ocupação %</th><th>Tendência</th><th>Status</th></tr></thead>
+            <tbody id="rankingTableFull"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:16px;" class="chart-card">
+          <div class="chart-header"><div><div class="chart-title">Comparativo de Zonas</div><div class="chart-sub">Hoje vs. ontem · Mesmo horário</div></div></div>
+          <div style="height:220px;position:relative;"><canvas id="compareChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- METRICS PAGE -->
+      <div id="dp-metrics" class="dash-page">
+        <div class="metrics-row">
+          <div class="metric-card"><div class="metric-icon">⚡</div><div class="metric-info"><label>Latência</label><span>99ms</span><small>↓ Ótimo</small></div></div>
+          <div class="metric-card"><div class="metric-icon">📡</div><div class="metric-info"><label>Cobertura</label><span>94.2%</span><small>↑ +0.3%</small></div></div>
+          <div class="metric-card"><div class="metric-icon">🔌</div><div class="metric-info"><label>Sensores Ativos</label><span>142/148</span><small>96% online</small></div></div>
+          <div class="metric-card"><div class="metric-icon">🔋</div><div class="metric-info"><label>Bateria Média</label><span>78%</span><small>Estimativa: 9h</small></div></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-header"><div><div class="chart-title">Latência ao Longo do Tempo</div><div class="chart-sub">Últimas 24 horas · ms</div></div></div>
+            <div style="height:200px;position:relative;"><canvas id="latencyChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header"><div><div class="chart-title">Status dos Sensores</div><div class="chart-sub">Por zona · Agora</div></div></div>
+            <div style="height:200px;position:relative;"><canvas id="sensorChart"></canvas></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header"><div><div class="chart-title">Log de Eventos do Sistema</div><div class="chart-sub">Últimas ocorrências</div></div></div>
+          <div id="sysLog" style="font-family:var(--mono);font-size:11px;margin-top:10px;max-height:200px;overflow-y:auto;"></div>
+        </div>
+      </div><!-- /dp-metrics -->
+
+      <!-- IA INSIGHTS PAGE -->
+      <div id="dp-ia" class="dash-page">
+        <div style="display:flex;flex-direction:column;height:calc(100vh - 140px);max-width:820px;margin:0 auto;">
+          <div id="ia-insight-banner" style="background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.25);border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:flex-start;gap:14px;">
+            <span style="font-size:22px;flex-shrink:0;">🤖</span>
+            <div style="flex:1;">
+              <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--p400);text-transform:uppercase;margin-bottom:6px;">Análise Automática · Rock in Rio 2025</div>
+              <p style="font-size:13px;color:var(--text);line-height:1.7;" id="ia-auto-insight">Analisando dados do evento...</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;" id="ia-suggestions"></div>
+          <div id="ia-messages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-right:4px;margin-bottom:14px;"></div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div style="flex:1;background:rgba(3,0,10,.8);border:1px solid rgba(76,29,149,.4);border-radius:10px;padding:12px 16px;">
+              <input id="ia-input" type="text" placeholder="Pergunte sobre o evento..." style="width:100%;background:none;border:none;outline:none;font-family:var(--sans);font-size:14px;color:var(--white);" onkeydown="if(event.key==='Enter')sendIAMessage()"/>
+            </div>
+            <button class="btn btn-primary" onclick="sendIAMessage()" style="padding:12px 20px;flex-shrink:0;">→</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /dash-content -->
+  </div><!-- /dash-main -->
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="dash-bottom-nav">
+    <div class="dash-bottom-nav-inner">
+      <div class="dbn-item active" onclick="showDashPage('overview',this)" id="dbn-overview">
+        <span class="dbn-icon">📊</span><span class="dbn-label">Geral</span>
+      </div>
+      <div class="dbn-item" onclick="showDashPage('heatmap',this)" id="dbn-heatmap">
+        <span class="dbn-icon">🗺️</span><span class="dbn-label">Mapa</span>
+      </div>
+      <div class="dbn-item" onclick="showDashPage('flow',this)" id="dbn-flow">
+        <span class="dbn-icon">📈</span><span class="dbn-label">Fluxo</span>
+      </div>
+      <div class="dbn-item" onclick="showDashPage('ia',this)" id="dbn-ia">
+        <span class="dbn-icon">🤖</span><span class="dbn-label">IA</span>
+      </div>
+      <div class="dbn-item" onclick="openProfile()" id="dbn-profile">
+        <span class="dbn-icon">👤</span><span class="dbn-label">Perfil</span>
+      </div>
+    </div>
+  </nav>
+</div><!-- /dashboard -->
+
+<!-- ══════════════════════════════════════
+     AJUDA PAGE
+══════════════════════════════════════ -->
+<div id="ajuda" class="page">
+  <nav class="topbar">
+    <div class="topbar-brand" onclick="showPage('landing')">EVENTRIX</div>
+    <div class="topbar-nav">
+      <button onclick="showPage('landing')" class="btn btn-outline btn-sm">← Voltar ao Site</button>
+      <button onclick="showPage('login')" class="btn btn-primary btn-sm">Acessar Painel</button>
+    </div>
+  </nav>
+  <aside class="ajuda-sidebar">
+    <a class="ajuda-nav-item active" href="#aj-inicio" onclick="setAjudaActive(this)">Início</a>
+    <a class="ajuda-nav-item" href="#aj-primeiros" onclick="setAjudaActive(this)">Primeiros Passos</a>
+    <a class="ajuda-nav-item" href="#aj-dashboard" onclick="setAjudaActive(this)">Dashboard</a>
+    <a class="ajuda-nav-item" href="#aj-faq" onclick="setAjudaActive(this)">Perguntas Frequentes</a>
+    <a class="ajuda-nav-item" href="#aj-contato" onclick="setAjudaActive(this)">Contato</a>
+  </aside>
+  <div class="ajuda-main">
+    <div class="ajuda-hero fade-in" id="aj-inicio">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--p700);text-transform:uppercase;margin-bottom:12px;">Central de Ajuda</div>
+      <h1>Como podemos<br>te ajudar?</h1>
+      <p>Encontre respostas rápidas sobre a plataforma EVENTRIX, configuração do dashboard e integração com seus eventos.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:56px;">
+      <div class="help-card"><div class="help-card-icon">🚀</div><div><h3>Começar um Novo Evento</h3><p>Aprenda como configurar seu primeiro evento na plataforma em menos de 10 minutos.</p></div></div>
+      <div class="help-card"><div class="help-card-icon">📊</div><div><h3>Usar o Dashboard</h3><p>Guia completo sobre as funcionalidades do painel de análise em tempo real.</p></div></div>
+      <div class="help-card"><div class="help-card-icon">📡</div><div><h3>Configurar Sensores</h3><p>Como posicionar e ativar os sensores de monitoramento no espaço do evento.</p></div></div>
+      <div class="help-card"><div class="help-card-icon">🔗</div><div><h3>API e Integrações</h3><p>Documentação técnica para integrar o EVENTRIX com sua stack de tecnologia.</p></div></div>
+    </div>
+
+    <div id="aj-primeiros" class="faq-section">
+      <h2>Primeiros Passos</h2>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>Como criar minha conta?</span><span>+</span></div><div class="faq-a"><p>Acesse a página inicial do EVENTRIX, clique em "Começar Grátis" e preencha seus dados. Você receberá um e-mail de confirmação em até 2 minutos. Após confirmar, seu painel já estará disponível.</p></div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>Quanto tempo leva para configurar um evento?</span><span>+</span></div><div class="faq-a"><p>Para eventos padrão, a configuração leva cerca de 30 minutos: criação do evento no painel (5 min), mapeamento das zonas (15 min) e ativação dos sensores (10 min). Nossa equipe de suporte pode auxiliar remotamente em todas as etapas.</p></div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>Preciso de internet no local do evento?</span><span>+</span></div><div class="faq-a"><p>Sim. O EVENTRIX opera em tempo real e requer conexão estável. Recomendamos ao menos 10Mbps dedicados para eventos até 5.000 pessoas. Para eventos maiores, nossa equipe avalia a infraestrutura necessária.</p></div></div>
+    </div>
+
+    <div id="aj-dashboard" class="faq-section">
+      <h2>Dashboard</h2>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>O que é o Mapa de Calor?</span><span>+</span></div><div class="faq-a"><p>O Mapa de Calor mostra a concentração de pessoas por zona em tempo real. Zonas em roxo intenso indicam alta densidade; zonas em roxo claro indicam baixa ocupação. Ideal para identificar gargalos e redistribuir equipes.</p></div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>Com que frequência os dados são atualizados?</span><span>+</span></div><div class="faq-a"><p>Os dados são atualizados a cada 99 milissegundos — praticamente em tempo real. O gráfico de fluxo por hora agrega os dados em intervalos de 15 minutos para melhor visualização histórica.</p></div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>Posso exportar os relatórios?</span><span>+</span></div><div class="faq-a"><p>Sim! Após o evento, um relatório completo em PDF e CSV é gerado automaticamente. Para planos Pro e Enterprise, a exportação em tempo real via API também está disponível.</p></div></div>
+    </div>
+
+    <div id="aj-faq" class="faq-section">
+      <h2>Perguntas Frequentes</h2>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>Os dados dos participantes são privados?</span><span>+</span></div><div class="faq-a"><p>Sim. O EVENTRIX coleta apenas dados de posicionamento anonimizados. Nenhuma informação pessoal identificável é coletada pelos sensores. O sistema é compatível com a LGPD.</p></div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>Qual a precisão da localização?</span><span>+</span></div><div class="faq-a"><p>A precisão varia de 1 a 3 metros dependendo da densidade de sensores. Para áreas críticas como palcos e entradas, recomendamos maior densidade de sensores para precisão de até 0,5m.</p></div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>E se um sensor falhar durante o evento?</span><span>+</span></div><div class="faq-a"><p>O sistema possui redundância automática. Se um sensor falhar, os sensores adjacentes assumem a cobertura da área. Um alerta é enviado imediatamente para a equipe técnica e para o seu painel.</p></div></div>
+    </div>
+
+    <div id="aj-contato" class="faq-section">
+      <h2>Contato</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="help-card"><div class="help-card-icon">📧</div><div><h3>E-mail de Suporte</h3><p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="601315100f121405200516050e141209184e030f0d4e0212">[email&#160;protected]</a><br>Resposta em até 4 horas úteis.</p></div></div>
+        <div class="help-card"><div class="help-card-icon">💬</div><div><h3>Chat ao Vivo</h3><p>Disponível durante eventos ativos. Acesse pelo painel do evento para suporte imediato.</p></div></div>
+        <div class="help-card"><div class="help-card-icon">📞</div><div><h3>Suporte Telefônico</h3><p>(11) 4000-0000<br>Seg–Sex, 9h–18h. 24h para planos Pro+.</p></div></div>
+        <div class="help-card"><div class="help-card-icon">📖</div><div><h3>Documentação Técnica</h3><p>Acesse docs.eventrix.com.br para a documentação completa da API e SDKs.</p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><!-- SAVE TOAST -->
+<div class="save-toast" id="saveToast">✓ Alterações salvas</div>
+
+<!-- PROFILE OVERLAY -->
+<div class="profile-overlay" id="profileOverlay" onclick="closeProfile()"></div>
+
+<!-- PROFILE PANEL -->
+<div class="profile-panel" id="profilePanel">
+  <div class="profile-panel-header">
+    <span class="profile-panel-title">Meu Perfil</span>
+    <button class="profile-close" onclick="closeProfile()">✕</button>
+  </div>
+
+  <!-- AVATAR + INFO -->
+  <div class="profile-avatar-section">
+    <div class="profile-avatar-wrap">
+      <div class="profile-avatar" id="profileAvatarEl">
+        <span id="profileAvatarInitials">AD</span>
+        <img id="profileAvatarImg" style="display:none;" alt="foto"/>
+      </div>
+      <label class="avatar-upload-btn" title="Trocar foto">
+        📷
+        <input type="file" accept="image/*" onchange="handleAvatarUpload(event)"/>
+      </label>
+    </div>
+    <div class="profile-avatar-info">
+      <div class="profile-name-row">
+        <span class="profile-name-display" id="profileNameDisplay">Admin EVENTRIX</span>
+        <span class="plan-badge-inline pro">Pro</span>
+      </div>
+      <div class="online-status"><div class="online-dot"></div>Online agora</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="profile-tabs">
+    <button class="profile-tab active" onclick="switchProfileTab('dados',this)">Dados</button>
+    <button class="profile-tab" onclick="switchProfileTab('plano',this)">Plano</button>
+    <button class="profile-tab" onclick="switchProfileTab('eventos',this)">Eventos</button>
+    <button class="profile-tab" onclick="switchProfileTab('notif',this)">Notif.</button>
+    <button class="profile-tab" onclick="switchProfileTab('seguranca',this)">Segurança</button>
+  </div>
+
+  <div class="profile-body">
+
+    <!-- TAB: DADOS PESSOAIS -->
+    <div class="profile-tab-content active" id="ptab-dados">
+      <div class="pf-row">
+        <div class="pf-group"><label>Nome</label><input class="pf-input" id="pf-nome" value="Admin EVENTRIX" oninput="syncName()"/></div>
+        <div class="pf-group"><label>Sobrenome</label><input class="pf-input" id="pf-sobrenome" value=""/></div>
+      </div>
+      <div class="pf-group"><label>E-mail</label><input class="pf-input" id="pf-email" type="email" value="admin@eventrix.com"/></div>
+      <div class="pf-group"><label>Telefone</label><input class="pf-input" id="pf-tel" value="+55 11 99999-0000"/></div>
+      <div class="pf-group"><label>Cargo</label><input class="pf-input" id="pf-cargo" value="Diretor de Operações"/></div>
+      <div style="height:1px;background:rgba(76,29,149,.2);margin:4px 0 16px;"></div>
+      <div class="pf-group"><label>Empresa / Produtora</label><input class="pf-input" id="pf-empresa" value="Rock World S.A."/></div>
+      <div class="pf-row">
+        <div class="pf-group"><label>CNPJ</label><input class="pf-input" id="pf-cnpj" value="12.345.678/0001-90"/></div>
+        <div class="pf-group"><label>Segmento</label>
+          <select class="pf-select" id="pf-segmento">
+            <option>Festivais</option><option>Shows</option><option>Corporativo</option><option>Esportes</option><option>Outros</option>
+          </select>
+        </div>
+      </div>
+      <div class="pf-group"><label>Site</label><input class="pf-input" id="pf-site" value="rockworld.com.br"/></div>
+    </div>
+
+    <!-- TAB: PLANO -->
+    <div class="profile-tab-content" id="ptab-plano">
+      <div class="plan-usage-card">
+        <div class="plan-usage-header">
+          <span class="plan-usage-name">Plano Pro</span>
+          <span class="plan-usage-badge">Ativo até Dez/2025</span>
+        </div>
+        <div class="usage-bar-wrap">
+          <div class="usage-bar-label"><span>Credenciais usadas</span><strong>7.240 / 10.000</strong></div>
+          <div class="usage-bar-bg"><div class="usage-bar-fill" style="width:72%"></div></div>
+        </div>
+        <div class="usage-bar-wrap">
+          <div class="usage-bar-label"><span>Eventos este mês</span><strong>3 / 5</strong></div>
+          <div class="usage-bar-bg"><div class="usage-bar-fill" style="width:60%"></div></div>
+        </div>
+        <div class="usage-bar-wrap">
+          <div class="usage-bar-label"><span>Zonas configuradas</span><strong>32 / ilimitado</strong></div>
+          <div class="usage-bar-bg"><div class="usage-bar-fill" style="width:32%"></div></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div style="background:rgba(14,0,24,.7);border:1px solid rgba(76,29,149,.25);border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--white);">8</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--p800);letter-spacing:1px;margin-top:4px;">EVENTOS TOTAL</div>
+        </div>
+        <div style="background:rgba(14,0,24,.7);border:1px solid rgba(76,29,149,.25);border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--white);">142K</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--p800);letter-spacing:1px;margin-top:4px;">CREDENCIAIS TOTAL</div>
+        </div>
+      </div>
+      <button class="btn btn-outline" style="width:100%;justify-content:center;" onclick="alert('Em breve: upgrade de plano!')">Fazer Upgrade →</button>
+    </div>
+
+    <!-- TAB: HISTÓRICO DE EVENTOS -->
+    <div class="profile-tab-content" id="ptab-eventos">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p800);text-transform:uppercase;margin-bottom:14px;">Últimos 8 eventos</div>
+      <div id="eventHistoryList">
+        <!-- preenchido por JS -->
+      </div>
+    </div>
+
+    <!-- TAB: NOTIFICAÇÕES -->
+    <div class="profile-tab-content" id="ptab-notif">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:16px;line-height:1.6;">Configure como e quando deseja receber alertas da plataforma.</div>
+      <div class="notif-item">
+        <div class="notif-info"><strong>Alerta de zona lotada</strong><span>Notificar quando uma zona atingir 85% da capacidade</span></div>
+        <label class="toggle"><input type="checkbox" checked/><div class="toggle-slider"></div></label>
+      </div>
+      <div class="notif-item">
+        <div class="notif-info"><strong>Falha de sensor</strong><span>Notificar imediatamente se um sensor ficar offline</span></div>
+        <label class="toggle"><input type="checkbox" checked/><div class="toggle-slider"></div></label>
+      </div>
+      <div class="notif-item">
+        <div class="notif-info"><strong>Relatório pós-evento</strong><span>Receber relatório automático ao final de cada evento</span></div>
+        <label class="toggle"><input type="checkbox" checked/><div class="toggle-slider"></div></label>
+      </div>
+      <div class="notif-item">
+        <div class="notif-info"><strong>Resumo diário por e-mail</strong><span>Resumo das métricas do dia via e-mail</span></div>
+        <label class="toggle"><input type="checkbox"/><div class="toggle-slider"></div></label>
+      </div>
+      <div class="notif-item">
+        <div class="notif-info"><strong>Pico de fluxo</strong><span>Alertar quando o fluxo de entrada aumentar 30% em 15 min</span></div>
+        <label class="toggle"><input type="checkbox" checked/><div class="toggle-slider"></div></label>
+      </div>
+      <div class="notif-item">
+        <div class="notif-info"><strong>Novidades do produto</strong><span>Atualizações e novas funcionalidades da plataforma</span></div>
+        <label class="toggle"><input type="checkbox"/><div class="toggle-slider"></div></label>
+      </div>
+    </div>
+
+    <!-- TAB: SEGURANÇA -->
+    <div class="profile-tab-content" id="ptab-seguranca">
+      <div class="security-item">
+        <div class="security-item-header">
+          <strong>Senha</strong>
+          <span class="sec-status sec-ok">Configurada</span>
+        </div>
+        <p>Última alteração há 30 dias. Recomendamos trocar a cada 90 dias.</p>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">
+          <input class="pf-input" type="password" placeholder="Senha atual" id="pf-senhaAtual"/>
+          <input class="pf-input" type="password" placeholder="Nova senha" id="pf-senhaNova"/>
+          <input class="pf-input" type="password" placeholder="Confirmar nova senha" id="pf-senhaConf"/>
+        </div>
+      </div>
+      <div class="security-item">
+        <div class="security-item-header">
+          <strong>Autenticação em 2 Fatores (2FA)</strong>
+          <span class="sec-status sec-off" id="twoFAStatus">Desativado</span>
+        </div>
+        <p>Adicione uma camada extra de segurança à sua conta com autenticação por aplicativo.</p>
+        <button class="btn btn-outline btn-sm" style="margin-top:12px;" onclick="toggle2FA()">Ativar 2FA →</button>
+      </div>
+      <div class="security-item">
+        <div class="security-item-header">
+          <strong>Sessões Ativas</strong>
+          <span class="sec-status sec-ok">1 sessão</span>
+        </div>
+        <p>Chrome · São Paulo, BR · Agora mesmo</p>
+      </div>
+    </div>
+
+  </div><!-- /profile-body -->
+
+  <div class="profile-footer">
+    <button class="btn btn-primary btn-save" onclick="saveProfile()">Salvar Alterações</button>
+    <button class="btn-logout" onclick="doLogout()">↩ Sair da Conta</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL FALAR COM VENDAS
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="vendasModal" onclick="if(event.target===this)closeVendas()">
+  <div class="modal-box">
+    <div class="modal-icon">📞</div>
+    <div class="modal-title">Fale com Vendas</div>
+    <p class="modal-desc">Nossa equipe especializada está pronta para criar um plano Enterprise sob medida para o seu evento.</p>
+    <div class="modal-phone">(11) 4020-1337</div>
+    <div class="modal-hours">SEG–SEX · 9H–18H · SUPORTE 24H NO EVENTO</div>
+    <div style="display:flex;gap:10px;margin-bottom:16px;">
+      <div style="flex:1;background:rgba(3,0,10,.6);border:1px solid rgba(76,29,149,.25);border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">💬</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--p600);">WHATSAPP</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--white);margin-top:2px;">(11) 94020-1337</div>
+      </div>
+      <div style="flex:1;background:rgba(3,0,10,.6);border:1px solid rgba(76,29,149,.25);border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">📧</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--p600);">E-MAIL</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--white);margin-top:2px;">vendas@eventrix.com</div>
+      </div>
+    </div>
+    <button class="btn btn-primary modal-close-btn" onclick="closeVendas()">Fechar</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGAMENTO
+══════════════════════════════════════ -->
+<div id="payment" class="page">
+  <nav class="topbar">
+    <div class="topbar-brand" onclick="showPage('landing')">EVENTRIX</div>
+    <div class="topbar-nav">
+      <button onclick="showPage('landing')" class="btn btn-outline btn-sm">← Voltar</button>
+    </div>
+  </nav>
+  <div class="payment-wrap">
+    <!-- SUCCESS SCREEN -->
+    <div class="payment-success" id="paymentSuccess">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Pagamento Aprovado!</div>
+      <p class="success-desc">Seu plano <strong id="successPlan" style="color:var(--p400);">Pro</strong> foi ativado com sucesso.<br>Você já pode acessar o painel EVENTRIX.</p>
+      <button class="btn btn-primary" style="padding:14px 40px;" onclick="showPage('dashboard');initCharts();startLiveUpdate();">Acessar Meu Painel →</button>
+    </div>
+
+    <!-- FORM -->
+    <div class="payment-grid" id="paymentForm">
+      <!-- RESUMO -->
+      <div class="payment-summary">
+        <div class="payment-summary-label">Resumo do Pedido</div>
+        <div class="payment-plan-name" id="pay-plan-name">Plano Pro</div>
+        <div class="payment-plan-price" id="pay-plan-price">R$6.990</div>
+        <div class="payment-plan-period">por evento · cobrança única</div>
+        <ul class="payment-features" id="pay-features"></ul>
+        <div class="payment-secure">🔒 <span>Pagamento 100% seguro · SSL · PCI DSS</span></div>
+      </div>
+
+      <!-- FORM DE PAGAMENTO -->
+      <div class="payment-form">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--p600);text-transform:uppercase;margin-bottom:16px;">Forma de Pagamento</div>
+        <div class="payment-methods">
+          <div class="pay-method-btn active" onclick="switchPayMethod('card',this)"><span class="pay-method-icon">💳</span>Cartão</div>
+          <div class="pay-method-btn" onclick="switchPayMethod('pix',this)"><span class="pay-method-icon">⚡</span>PIX</div>
+          <div class="pay-method-btn" onclick="switchPayMethod('boleto',this)"><span class="pay-method-icon">📄</span>Boleto</div>
+        </div>
+
+        <!-- CARTÃO -->
+        <div class="pay-panel active" id="pp-card">
+          <div class="pf-group"><label style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p700);text-transform:uppercase;display:block;margin-bottom:7px;">Número do Cartão</label>
+            <input class="pf-input" placeholder="0000 0000 0000 0000" maxlength="19" oninput="fmtCard(this)"/></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="pf-group"><label style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p700);text-transform:uppercase;display:block;margin-bottom:7px;">Validade</label>
+              <input class="pf-input" placeholder="MM/AA" maxlength="5" oninput="fmtExp(this)"/></div>
+            <div class="pf-group"><label style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p700);text-transform:uppercase;display:block;margin-bottom:7px;">CVV</label>
+              <input class="pf-input" placeholder="123" maxlength="4" type="password"/></div>
+          </div>
+          <div class="pf-group"><label style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p700);text-transform:uppercase;display:block;margin-bottom:7px;">Nome no Cartão</label>
+            <input class="pf-input" placeholder="NOME SOBRENOME"/></div>
+          <div class="pf-group"><label style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p700);text-transform:uppercase;display:block;margin-bottom:7px;">Parcelamento</label>
+            <select class="pf-select"><option>1x R$6.990 sem juros</option><option>2x R$3.495 sem juros</option><option>3x R$2.330 sem juros</option><option>6x R$1.165 sem juros</option><option>12x R$631 (2,99% a.m.)</option></select></div>
+          <button class="btn btn-primary" style="width:100%;padding:14px;font-size:12px;letter-spacing:2px;" onclick="processPayment()">Pagar Agora →</button>
+        </div>
+
+        <!-- PIX -->
+        <div class="pay-panel" id="pp-pix">
+          <div style="text-align:center;padding:12px 0;">
+            <div class="pix-qr">🟪</div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Escaneie o QR Code ou copie o código PIX abaixo</p>
+            <div class="pix-code" onclick="copyPix()">00020126580014BR.GOV.BCB.PIX0136eventrix-pagamento-demo@eventrix.com5204000053039865406<span id="pixPrice">6990</span>5802BR5915EVENTRIX SA6009SAO PAULO62070503***6304ABCD</div>
+            <div class="pix-timer" id="pixTimer">⏱ Expira em 14:59</div>
+            <button class="btn btn-primary" style="width:100%;padding:14px;font-size:12px;letter-spacing:2px;" onclick="processPayment()">Já Paguei — Confirmar →</button>
+          </div>
+        </div>
+
+        <!-- BOLETO -->
+        <div class="pay-panel" id="pp-boleto">
+          <div style="text-align:center;padding:12px 0;">
+            <div style="font-size:48px;margin-bottom:12px;">📄</div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Copie o código de barras ou baixe o boleto</p>
+            <div class="boleto-code" onclick="copyBoleto()">34191.09008 06935.251905 31001.140003 9 00000000<span id="boletoPrice">6990</span>00</div>
+            <div class="boleto-info">Vencimento: <strong style="color:var(--p400);">3 dias úteis</strong><br>O acesso será liberado após a compensação bancária (até 2 dias úteis).</div>
+            <button class="btn btn-primary" style="width:100%;padding:14px;font-size:12px;letter-spacing:2px;" onclick="processPayment()">Gerar e Baixar Boleto →</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     QR SCANNER
+══════════════════════════════════════ -->
+<div id="qrscanner" class="page">
+  <div class="qr-screen">
+    <div class="qr-header">
+      <span class="qr-brand">EVENTRIX</span>
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--p700);text-transform:uppercase;">Scanner de Acesso</div>
+      <button class="qr-back" onclick="showPage('dashboard')">← Painel</button>
+    </div>
+
+    <div class="qr-viewfinder">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--p700);text-transform:uppercase;text-align:center;">Rock in Rio 2025 · Portão A</div>
+      <div class="qr-frame-wrap">
+        <div class="qr-frame">
+          <div class="qr-frame-corner tl"></div>
+          <div class="qr-frame-corner tr"></div>
+          <div class="qr-frame-corner bl"></div>
+          <div class="qr-frame-corner br"></div>
+          <div class="qr-scan-line"></div>
+          <div class="qr-frame-icon">📷</div>
+        </div>
+      </div>
+      <div class="qr-hint">Aponte a câmera para o QR Code da credencial</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--p900);letter-spacing:1px;text-transform:uppercase;">— Simulação —</div>
+      <div class="qr-sim-btns">
+        <button class="qr-sim-btn qr-sim-ok" onclick="qrResult('ok')">✓ Acesso Liberado</button>
+        <button class="qr-sim-btn qr-sim-deny" onclick="qrResult('deny')">✕ Acesso Negado</button>
+      </div>
+    </div>
+
+    <!-- RESULT SUCCESS -->
+    <div class="qr-result success" id="qr-success">
+      <div class="qr-result-icon">✅</div>
+      <div class="qr-result-status">Acesso Liberado</div>
+      <div class="qr-ticket-card">
+        <div class="qr-ticket-avatar" id="qr-avatar">MF</div>
+        <div class="qr-ticket-name" id="qr-name">Maria Fernanda Silva</div>
+        <div class="qr-ticket-num" id="qr-num">Ingresso #RIR2025-047832</div>
+        <div class="qr-ticket-info">
+          <div class="qr-ticket-field"><label>Zona Permitida</label><span id="qr-zone">Área Geral</span></div>
+          <div class="qr-ticket-field"><label>Horário</label><span id="qr-time">22:14:07</span></div>
+          <div class="qr-ticket-field"><label>Tipo</label><span id="qr-type">Meia-entrada</span></div>
+          <div class="qr-ticket-field"><label>Status</label><span style="color:#4ade80;">✓ Válido</span></div>
+        </div>
+      </div>
+      <button class="qr-dismiss" onclick="dismissQR()">Próximo →</button>
+    </div>
+
+    <!-- RESULT DENIED -->
+    <div class="qr-result denied" id="qr-denied">
+      <div class="qr-result-icon">🚫</div>
+      <div class="qr-result-status">Acesso Negado</div>
+      <div class="qr-ticket-card">
+        <div class="qr-ticket-avatar" style="background:linear-gradient(135deg,#7f1d1d,#ef4444);" id="qr-deny-avatar">??</div>
+        <div class="qr-ticket-name" id="qr-deny-name">Credencial Inválida</div>
+        <div class="qr-ticket-num" id="qr-deny-num">Ingresso #RIR2025-099001</div>
+        <div class="qr-denied-reason" id="qr-deny-reason">⚠ Ingresso já utilizado às 19:32:41</div>
+      </div>
+      <button class="qr-dismiss" onclick="dismissQR()">Tentar Novamente →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// MOBILE MENU
+// ══════════════════════════════════════
+function toggleMobileMenu() {
+  const btn  = document.getElementById('hamburgerBtn');
+  const menu = document.getElementById('mobileMenu');
+  btn.classList.toggle('open');
+  menu.classList.toggle('open');
+}
+function closeMobileMenu() {
+  document.getElementById('hamburgerBtn').classList.remove('open');
+  document.getElementById('mobileMenu').classList.remove('open');
+}
+// Fechar menu ao clicar fora
+document.addEventListener('click', e => {
+  const btn  = document.getElementById('hamburgerBtn');
+  const menu = document.getElementById('mobileMenu');
+  if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+    closeMobileMenu();
+  }
+});
+
+// ══════════════════════════════════════
+// NAVEGAÇÃO
+// ══════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if (id === 'dashboard') {
+    setTimeout(initCharts, 100);
+    startLiveUpdate();
+  }
+}
+
+function doLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const pass  = document.getElementById('loginPass').value;
+  const err   = document.getElementById('loginError');
+  if (email === 'admin@eventrix.com' && pass === 'demo1234') {
+    err.style.display = 'none';
+    showPage('dashboard');
+  } else {
+    err.style.display = 'block';
+  }
+}
+
+function showDashPage(id, el) {
+  document.querySelectorAll('.dash-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.dash-nav-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('dp-' + id).classList.add('active');
+  el.classList.add('active');
+  const titles = {
+    overview: ['Visão Geral', 'Rock in Rio 2025 · Dia 3 · Palco Mundo'],
+    heatmap:  ['Mapa de Calor', 'Concentração por zona · Tempo real'],
+    flow:     ['Fluxo por Hora', 'Entradas e saídas · Hoje'],
+    ranking:  ['Ranking de Zonas', 'Ocupação atual · Ordenado por densidade'],
+    metrics:  ['Métricas Técnicas', 'Infraestrutura · Sensores · Latência'],
+  };
+  document.getElementById('dashPageTitle').textContent = titles[id][0];
+  document.getElementById('dashPageSub').textContent   = titles[id][1];
+  setTimeout(() => initChartsForPage(id), 80);
+}
+
+function setAjudaActive(el) {
+  document.querySelectorAll('.ajuda-nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function toggleFaq(el) {
+  const ans = el.nextElementSibling;
+  const ico = el.querySelector('span:last-child');
+  ans.classList.toggle('open');
+  ico.classList.toggle('open');
+}
+
+// ══════════════════════════════════════
+// DADOS FAKE — ROCK IN RIO 2025
+// ══════════════════════════════════════
+const zones = [
+  { name:'Palco Mundo',   people:12400, cap:20000, trend:'↑', color:'rgba(232,121,249,.8)' },
+  { name:'Palco Sunset',  people:8200,  cap:15000, trend:'↑', color:'rgba(192,132,252,.8)' },
+  { name:'Palco Favela',  people:5800,  cap:10000, trend:'→', color:'rgba(168,85,247,.8)' },
+  { name:'Área de Food',  people:7200,  cap:12000, trend:'↑', color:'rgba(147,51,234,.8)' },
+  { name:'Camarotes VIP', people:3100,  cap:5000,  trend:'→', color:'rgba(124,58,237,.8)' },
+  { name:'Bar Principal', people:4900,  cap:8000,  trend:'↑', color:'rgba(107,33,168,.8)' },
+  { name:'Área Kids',     people:1800,  cap:4000,  trend:'↓', color:'rgba(76,29,149,.8)'  },
+  { name:'Estacionamento',people:4432,  cap:8000,  trend:'↓', color:'rgba(60,20,130,.8)'  },
+];
+
+const hours = ['14h','15h','16h','17h','18h','19h','20h','21h','22h','23h','00h','01h'];
+const flowIn  = [2100,3400,5200,7800,9200,10100,11400,12800,15200,13400,8200,4100];
+const flowOut = [300, 500, 800, 1200,1800,2400, 3100, 3800, 4200, 5800,7200,5400];
+const cumulative = flowIn.map((v,i) => flowIn.slice(0,i+1).reduce((a,b)=>a+b,0) - flowOut.slice(0,i+1).reduce((a,b)=>a+b,0));
+
+// ══════════════════════════════════════
+// TABELAS
+// ══════════════════════════════════════
+function buildRankingTable() {
+  const tb = document.getElementById('rankingTable');
+  if (!tb) return;
+  const sorted = [...zones].sort((a,b)=>b.people-a.people);
+  tb.innerHTML = sorted.slice(0,6).map((z,i) => {
+    const pct = Math.round(z.people/z.cap*100);
+    const w   = Math.round(pct * 1.4);
+    return `<tr>
+      <td class="rank-num">${i+1}</td>
+      <td>${z.name}</td>
+      <td><div class="rank-bar-wrap"><div class="rank-bar" style="width:${w}px"></div>${z.people.toLocaleString()}</div></td>
+      <td>${pct}%</td>
+      <td style="color:${z.trend==='↑'?'#4ade80':z.trend==='↓'?'#f87171':'var(--p400)'}">${z.trend}</td>
+    </tr>`;
+  }).join('');
+}
+
+function buildRankingTableFull() {
+  const tb = document.getElementById('rankingTableFull');
+  if (!tb) return;
+  const sorted = [...zones].sort((a,b)=>b.people-a.people);
+  tb.innerHTML = sorted.map((z,i) => {
+    const pct = Math.round(z.people/z.cap*100);
+    const status = pct > 85 ? '<span style="color:#f87171;font-family:var(--mono);font-size:10px;">ALERTA</span>'
+                 : pct > 65 ? '<span style="color:#fbbf24;font-family:var(--mono);font-size:10px;">ALTO</span>'
+                 : '<span style="color:#4ade80;font-family:var(--mono);font-size:10px;">NORMAL</span>';
+    return `<tr>
+      <td class="rank-num">${i+1}</td>
+      <td>${z.name}</td>
+      <td>${z.people.toLocaleString()}</td>
+      <td>${z.cap.toLocaleString()}</td>
+      <td><div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round(pct*.8)}px"></div>${pct}%</div></td>
+      <td style="color:${z.trend==='↑'?'#4ade80':z.trend==='↓'?'#f87171':'var(--p400)'}">${z.trend}</td>
+      <td>${status}</td>
+    </tr>`;
+  }).join('');
+}
+
+function buildHeatmap() {
+  const g = document.getElementById('heatmapGrid');
+  if (!g) return;
+  g.innerHTML = zones.map(z => {
+    const pct = Math.round(z.people/z.cap*100);
+    const intensity = Math.min(pct/100, 1);
+    const bg = `rgba(${Math.round(100+intensity*132)},${Math.round(intensity*58)},${Math.round(200+intensity*37)},${0.15+intensity*0.35})`;
+    return `<div class="heatmap-zone" style="background:${bg}">
+      <div class="hz-name">${z.name}</div>
+      <div class="hz-val">${z.people.toLocaleString()}</div>
+      <div class="hz-pct" style="color:${pct>80?'#f87171':pct>60?'#fbbf24':'#4ade80'}">${pct}% cap.</div>
+    </div>`;
+  }).join('');
+}
+
+function buildTechMetrics() {
+  const c = document.getElementById('techMetrics');
+  if (!c) return;
+  const metrics = [
+    { label:'Latência P50', val:'87ms',  sub:'Mediana' },
+    { label:'Latência P99', val:'142ms', sub:'Percentil 99' },
+    { label:'Uptime Hoje',  val:'99.98%',sub:'0.02% downtime' },
+    { label:'Dados Proc.',  val:'2.4GB', sub:'Últimas 8h' },
+  ];
+  c.innerHTML = metrics.map(m => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(76,29,149,.15);">
+      <div><div style="font-family:var(--mono);font-size:10px;color:var(--p600);letter-spacing:1px;">${m.label}</div><div style="font-size:11px;color:var(--muted);">${m.sub}</div></div>
+      <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--white);">${m.val}</div>
+    </div>`).join('');
+}
+
+function buildSysLog() {
+  const c = document.getElementById('sysLog');
+  if (!c) return;
+  const logs = [
+    { time:'01:14:33', type:'INFO',  msg:'Sensor S-042 reconectado · Área Kids' },
+    { time:'01:12:18', type:'INFO',  msg:'Pico de fluxo detectado · Palco Mundo · 15.200 pess.' },
+    { time:'00:58:44', type:'WARN',  msg:'Latência elevada momentânea · 320ms · Normalizado' },
+    { time:'00:45:02', type:'INFO',  msg:'Backup de dados realizado com sucesso' },
+    { time:'00:32:11', type:'INFO',  msg:'Sensor S-017 bateria baixa · Camarotes VIP · 18%' },
+    { time:'00:18:59', type:'INFO',  msg:'142 sensores ativos · 6 em standby · 0 offline' },
+    { time:'23:52:40', type:'INFO',  msg:'Sistema iniciado · Evento Rock in Rio 2025 · Dia 3' },
+  ];
+  c.innerHTML = logs.map(l => `
+    <div style="display:flex;gap:12px;padding:6px 0;border-bottom:1px solid rgba(76,29,149,.1);">
+      <span style="color:var(--p900);flex-shrink:0;">${l.time}</span>
+      <span style="color:${l.type==='WARN'?'#fbbf24':'#4ade80'};flex-shrink:0;">${l.type}</span>
+      <span style="color:var(--muted);">${l.msg}</span>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════
+const chartInstances = {};
+
+const chartDefaults = {
+  color: 'rgba(200,180,220,0.8)',
+  grid:  'rgba(76,29,149,0.15)',
+  font:  "'IBM Plex Mono', monospace",
+};
+
+function destroyChart(id) {
+  if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+}
+
+function makeChart(id, cfg) {
+  destroyChart(id);
+  const el = document.getElementById(id);
+  if (!el) return;
+  chartInstances[id] = new Chart(el, cfg);
+}
+
+function initCharts() {
+  buildRankingTable();
+  buildHeatmap();
+  buildTechMetrics();
+
+  // Flow chart
+  makeChart('flowChart', {
+    type: 'line',
+    data: {
+      labels: hours,
+      datasets: [{
+        label:'Pessoas no evento',
+        data: cumulative,
+        borderColor:'#c084fc',
+        backgroundColor:'rgba(192,132,252,.08)',
+        tension:.4, fill:true, pointRadius:3,
+        pointBackgroundColor:'#c084fc',
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ grid:{ color:chartDefaults.grid }, ticks:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 } } },
+        y:{ grid:{ color:chartDefaults.grid }, ticks:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 }, callback: v => (v/1000).toFixed(0)+'K' } }
+      }
+    }
+  });
+
+  // Zone donut
+  makeChart('zoneChart', {
+    type:'doughnut',
+    data:{
+      labels: zones.map(z=>z.name),
+      datasets:[{ data: zones.map(z=>z.people), backgroundColor: zones.map(z=>z.color), borderWidth:0, hoverOffset:8 }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'68%',
+      plugins:{ legend:{ position:'right', labels:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 }, boxWidth:10, padding:12 } } }
+    }
+  });
+}
+
+function initChartsForPage(id) {
+  if (id === 'overview') { initCharts(); return; }
+  if (id === 'heatmap') {
+    buildHeatmap();
+    makeChart('heatHistChart', {
+      type:'line',
+      data:{
+        labels: hours,
+        datasets: zones.slice(0,4).map((z,i) => ({
+          label: z.name,
+          data: hours.map(() => Math.round(z.people * (0.6 + Math.random()*.7))),
+          borderColor: z.color, backgroundColor:'transparent', tension:.4, pointRadius:2,
+        }))
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ labels:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 }, boxWidth:10 } } },
+        scales:{
+          x:{ grid:{ color:chartDefaults.grid }, ticks:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 } } },
+          y:{ grid:{ color:chartDefaults.grid }, ticks:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 }, callback: v => (v/1000).toFixed(0)+'K' } }
+        }
+      }
+    });
+  }
+  if (id === 'flow') {
+    makeChart('flowDetailChart', {
+      type:'bar',
+      data:{
+        labels: hours,
+        datasets:[
+          { label:'Entradas', data:flowIn,  backgroundColor:'rgba(192,132,252,.7)', borderRadius:4 },
+          { label:'Saídas',   data:flowOut, backgroundColor:'rgba(239,68,68,.4)',   borderRadius:4 },
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ labels:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 }, boxWidth:10 } } },
+        scales:{
+          x:{ grid:{ color:chartDefaults.grid }, ticks:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 } } },
+          y:{ grid:{ color:chartDefaults.grid }, ticks:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 } } }
+        }
+      }
+    });
+    makeChart('durationChart', {
+      type:'bar',
+      data:{
+        labels: zones.map(z=>z.name),
+        datasets:[{ label:'Minutos', data:[262,198,145,88,174,112,320,52], backgroundColor:'rgba(168,85,247,.7)', borderRadius:4 }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ display:false } },
+        scales:{
+          x:{ grid:{ color:chartDefaults.grid }, ticks:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 } } },
+          y:{ grid:{ color:chartDefaults.grid }, ticks:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 } } }
+        }
+      }
+    });
+  }
+  if (id === 'ranking') {
+    buildRankingTableFull();
+    makeChart('compareChart', {
+      type:'bar',
+      data:{
+        labels: zones.map(z=>z.name),
+        datasets:[
+          { label:'Hoje',   data:zones.map(z=>z.people),                           backgroundColor:'rgba(192,132,252,.8)', borderRadius:4 },
+          { label:'Ontem',  data:zones.map(z=>Math.round(z.people*(0.8+Math.random()*.3))), backgroundColor:'rgba(76,29,149,.5)',  borderRadius:4 },
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ labels:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 }, boxWidth:10 } } },
+        scales:{
+          x:{ grid:{ color:chartDefaults.grid }, ticks:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 } } },
+          y:{ grid:{ color:chartDefaults.grid }, ticks:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 }, callback: v => (v/1000).toFixed(0)+'K' } }
+        }
+      }
+    });
+  }
+  if (id === 'metrics') {
+    buildSysLog();
+    makeChart('latencyChart', {
+      type:'line',
+      data:{
+        labels: Array.from({length:24}, (_,i)=>i+'h'),
+        datasets:[{ label:'Latência (ms)', data:Array.from({length:24},()=>80+Math.random()*60), borderColor:'#a855f7', backgroundColor:'rgba(168,85,247,.07)', tension:.4, fill:true, pointRadius:2, pointBackgroundColor:'#a855f7' }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ display:false } },
+        scales:{
+          x:{ grid:{ color:chartDefaults.grid }, ticks:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 } } },
+          y:{ grid:{ color:chartDefaults.grid }, ticks:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 }, callback: v=>v+'ms' } }
+        }
+      }
+    });
+    makeChart('sensorChart', {
+      type:'doughnut',
+      data:{
+        labels:['Online','Standby','Offline'],
+        datasets:[{ data:[142,6,0], backgroundColor:['rgba(74,222,128,.7)','rgba(251,191,36,.6)','rgba(239,68,68,.5)'], borderWidth:0 }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false, cutout:'65%',
+        plugins:{ legend:{ position:'bottom', labels:{ color:chartDefaults.color, font:{ family:chartDefaults.font, size:10 }, boxWidth:10 } } }
+      }
+    });
+  }
+}
+
+// ══════════════════════════════════════
+// LIVE UPDATE simulado
+// ══════════════════════════════════════
+let liveInterval = null;
+function startLiveUpdate() {
+  if (liveInterval) return;
+  liveInterval = setInterval(() => {
+    const delta = Math.floor(Math.random()*80) - 20;
+    const el = document.getElementById('kpi-total');
+    if (el) {
+      const cur = parseInt(el.textContent.replace(/\./g,''));
+      l.textContent = (cur + delta).toLocaleString('pt-BR');
+    }
+  }, 3000);
+}
+
+// ══════════════════════════════════════
+// PERFIL
+// ══════════════════════════════════════
+function openProfile() {
+  document.getElementById('profileOverlay').classList.add('open');
+  document.getElementById('profilePanel').classList.add('open');
+  buildEventHistory();
+}
+
+function closeProfile() {
+  document.getElementById('profileOverlay').classList.remove('open');
+  document.getElementById('profilePanel').classList.remove('open');
+}
+
+function switchProfileTab(id, el) {
+  document.querySelectorAll('.profile-tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('ptab-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+function syncName() {
+  const nome  = document.getElementById('pf-nome').value;
+  const sobre = document.getElementById('pf-sobrenome').value;
+  const full  = (nome + ' ' + sobre).trim();
+  document.getElementById('profileNameDisplay').textContent = full || 'Usuário';
+  document.getElementById('sidebarName').textContent = full || 'Usuário';
+  const parts    = full.split(' ').filter(Boolean);
+  const initials = parts.length >= 2
+    ? parts[0][0] + parts[parts.length-1][0]
+    : (parts[0] || 'U').substring(0,2);
+  document.getElementById('profileAvatarInitials').textContent = initials.toUpperCase();
+  document.getElementById('sidebarAvatar').textContent = initials.toUpperCase();
+}
+
+function handleAvatarUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = document.getElementById('profileAvatarImg');
+    img.src = ev.target.result;
+    img.style.display = 'block';
+    document.getElementById('profileAvatarInitials').style.display = 'none';
+    const sb = document.getElementById('sidebarAvatar');
+    sb.innerHTML = '<img src="' + ev.target.result + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveProfile() {
+  const toast = document.getElementById('saveToast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2400);
+}
+
+function doLogout() {
+  closeProfile();
+  if (liveInterval) { clearInterval(liveInterval); liveInterval = null; }
+  showPage('landing');
+}
+
+function toggle2FA() {
+  const el = document.getElementById('twoFAStatus');
+  if (el.classList.contains('sec-off')) {
+    el.classList.remove('sec-off'); el.classList.add('sec-ok');
+    el.textContent = 'Ativado';
+    alert('2FA ativado! Em produção, exibirá QR code do autenticador.');
+  } else {
+    el.classList.remove('sec-ok'); el.classList.add('sec-off');
+    el.textContent = 'Desativado';
+  }
+}
+
+function buildEventHistory() {
+  const events = [
+    { name:'Rock in Rio 2025',        date:'Mar 2025', people:'47.832',  icon:'🎸', status:'ok'  },
+    { name:'Lollapalooza BR 2025',    date:'Mar 2025', people:'85.000',  icon:'🎵', status:'ok'  },
+    { name:'The Town 2024',           date:'Set 2024', people:'110.000', icon:'🏙️', status:'old' },
+    { name:'Festival de Inverno BH',  date:'Jul 2024', people:'12.400',  icon:'❄️', status:'old' },
+    { name:'Primavera Sound SP',      date:'Nov 2024', people:'35.000',  icon:'🌸', status:'old' },
+    { name:'Tomorrowland Brasil',     date:'Out 2024', people:'180.000', icon:'🎪', status:'old' },
+    { name:'CBJJ Sul Americano',      date:'Jun 2024', people:'8.200',   icon:'🏆', status:'old' },
+    { name:'São Paulo Fashion Week',  date:'Abr 2024', people:'6.800',   icon:'👗', status:'old' },
+  ];
+  const c = document.getElementById('eventHistoryList');
+  if (!c) return;
+  c.innerHTML = events.map(ev => `
+    <div class="event-history-item">
+      <div class="event-hist-icon">${ev.icon}</div>
+      <div class="event-hist-info">
+        <div class="event-hist-name">${ev.name}</div>
+        <div class="event-hist-meta">${ev.date} · ${ev.people} pessoas</div>
+      </div>
+      <span class="event-hist-badge ${ev.status === 'ok' ? 'ehb-ok' : 'ehb-old'}">${ev.status === 'ok' ? 'Ativo' : 'Concluído'}</span>
+    </div>`).join('');
+}
+
+function refreshData() {
+  buildRankingTable();
+  buildHeatmap();
+  const btn = event.target;
+  btn.textContent = '✓ Atualizado';
+  btn.style.color = '#4ade80';
+  setTimeout(() => { btn.textContent = '↻ Atualizar'; btn.style.color = ''; }, 1500);
+}
+
+// ══════════════════════════════════════
+// MODAL VENDAS
+// ══════════════════════════════════════
+function openVendasModal() {
+  document.getElementById('vendasModal').classList.add('open');
+}
+function closeVendas() {
+  document.getElementById('vendasModal').classList.remove('open');
+}
+
+// ══════════════════════════════════════
+// PAGAMENTO
+// ══════════════════════════════════════
+const planFeatures = {
+  'Starter': ['Até 2.000 credenciais','4 zonas monitoradas','Dashboard em tempo real','Relatório pós-evento','Suporte por e-mail'],
+  'Pro':     ['Até 10.000 credenciais','Zonas ilimitadas','Dashboard + app mobile','Alertas em tempo real','API de integração','Suporte 24h no evento'],
+};
+
+function showPayment(plan, price) {
+  document.getElementById('pay-plan-name').textContent = 'Plano ' + plan;
+  document.getElementById('pay-plan-price').textContent = price;
+  document.getElementById('successPlan').textContent = plan;
+  const feats = planFeatures[plan] || planFeatures['Pro'];
+  document.getElementById('pay-features').innerHTML = feats.map(f => `<li>${f}</li>`).join('');
+  const rawPrice = price.replace('R$','').replace('.','');
+  document.getElementById('pixPrice').textContent  = rawPrice;
+  document.getElementById('boletoPrice').textContent = rawPrice;
+  document.getElementById('paymentSuccess').classList.remove('show');
+  document.getElementById('paymentForm').style.display = '';
+  // reset method to card
+  switchPayMethod('card', document.querySelector('.pay-method-btn'));
+  showPage('payment');
+  startPixTimer();
+}
+
+function switchPayMethod(id, el) {
+  document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.pay-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('pp-' + id).classList.add('active');
+}
+
+function fmtCard(el) {
+  let v = el.value.replace(/\D/g,'').substring(0,16);
+  el.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+function fmtExp(el) {
+  let v = el.value.replace(/\D/g,'').substring(0,4);
+  if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+  el.value = v;
+}
+
+let pixTimerInt = null;
+function startPixTimer() {
+  clearInterval(pixTimerInt);
+  let secs = 14*60 + 59;
+  const el = document.getElementById('pixTimer');
+  pixTimerInt = setInterval(() => {
+    if (!el) { clearInterval(pixTimerInt); return; }
+    const m = String(Math.floor(secs/60)).padStart(2,'0');
+    const s = String(secs % 60).padStart(2,'0');
+    el.textContent = '⏱ Expira em ' + m + ':' + s;
+    if (--secs < 0) { clearInterval(pixTimerInt); el.textContent = '⚠ Código expirado'; }
+  }, 1000);
+}
+
+function copyPix() {
+  navigator.clipboard.writeText('PIX DEMO EVENTRIX').catch(()=>{});
+  const el = document.querySelector('.pix-code');
+  el.style.background = 'rgba(124,58,237,.2)';
+  setTimeout(()=>el.style.background='',700);
+}
+function copyBoleto() {
+  navigator.clipboard.writeText('BOLETO DEMO EVENTRIX').catch(()=>{});
+  const el = document.querySelector('.boleto-code');
+  el.style.background = 'rgba(124,58,237,.2)';
+  setTimeout(()=>el.style.background='',700);
+}
+
+function processPayment() {
+  const btn = event.target;
+  btn.textContent = 'Processando...';
+  btn.disabled = true;
+  setTimeout(() => {
+    clearInterval(pixTimerInt);
+    document.getElementById('paymentForm').style.display = 'none';
+    document.getElementById('paymentSuccess').classList.add('show');
+    btn.disabled = false;
+  }, 2000);
+}
+
+// ══════════════════════════════════════
+// QR SCANNER
+// ══════════════════════════════════════
+const fakeParticipants = [
+  { name:'Maria Fernanda Silva', initials:'MF', num:'RIR2025-047832', zone:'Área Geral', type:'Meia-entrada' },
+  { name:'Carlos Eduardo Nunes', initials:'CE', num:'RIR2025-012445', zone:'Camarote VIP', type:'Inteira' },
+  { name:'Juliana Rocha Lima',   initials:'JR', num:'RIR2025-089012', zone:'Palco Sunset', type:'Inteira' },
+  { name:'Rafael Alves Costa',   initials:'RA', num:'RIR2025-033201', zone:'Área Geral', type:'Meia-entrada' },
+];
+const denyReasons = [
+  '⚠ Ingresso já utilizado às 19:32:41',
+  '⚠ Ingresso cancelado pelo emissor',
+  '⚠ QR Code inválido ou adulterado',
+  '⚠ Ingresso de outro dia (válido: Dom 06/04)',
+];
+
+function qrResult(type) {
+  const now = new Date();
+  const time = now.toLocaleTimeString('pt-BR');
+  if (type === 'ok') {
+    const p = fakeParticipants[Math.floor(Math.random()*fakeParticipants.length)];
+    document.getElementById('qr-avatar').textContent = p.initials;
+    document.getElementById('qr-name').textContent   = p.name;
+    document.getElementById('qr-num').textContent    = 'Ingresso #' + p.num;
+    document.getElementById('qr-zone').textContent   = p.zone;
+    document.getElementById('qr-time').textContent   = time;
+    document.getElementById('qr-type').textContent   = p.type;
+    document.getElementById('qr-success').classList.add('show');
+  } else {
+    const r = denyReasons[Math.floor(Math.random()*denyReasons.length)];
+    document.getElementById('qr-deny-name').textContent   = 'Credencial Inválida';
+    document.getElementById('qr-deny-num').textContent    = 'Ingresso #RIR2025-' + Math.floor(Math.random()*99999).toString().padStart(6,'0');
+    document.getElementById('qr-deny-reason').textContent = r;
+    document.getElementById('qr-denied').classList.add('show');
+  }
+}
+
+function dismissQR() {
+  document.getElementById('qr-success').classList.remove('show');
+  document.getElementById('qr-denied').classList.remove('show');
+}
+
+// ══════════════════════════════════════
+// IA INSIGHTS
+// ══════════════════════════════════════
+const iaResponses = [
+  { match: ['zona','quente','lotad','densidad'],
+    text: 'O <strong>Palco Mundo</strong> está com 62% de capacidade e é a zona mais densa agora. O fluxo de entrada aumentou 34% nos últimos 30 minutos, o que indica que o show principal se aproxima. Recomendo reforçar a equipe de segurança nos acessos Leste e Norte.',
+    chart: { type:'bar', title:'Ocupação por Zona (agora)', labels:['P. Mundo','P. Sunset','Food','P. Favela','VIP','Bar','Kids'], data:[62,55,60,58,62,61,45] } },
+  { match: ['fluxo','hora','pico','entra','sa'],
+    text: 'O pico de fluxo ocorreu às <strong>22h</strong> com 15.200 entradas na hora. O saldo acumulado atual é de <strong>47.832 pessoas</strong>. A curva mostra padrão normal para um show noturno — crescimento rápido até o pico e deflexão pós-show.',
+    chart: { type:'line', title:'Fluxo por Hora · Hoje', labels:['14h','15h','16h','17h','18h','19h','20h','21h','22h','23h'], data:[2100,3400,5200,7800,9200,10100,11400,12800,15200,13400] } },
+  { match: ['vip','camarote','premium'],
+    text: 'O <strong>Camarote VIP</strong> opera com 62% da capacidade (3.100/5.000). A permanência média é de 2h54min — 35% maior que as zonas gerais. Isso indica alto engajamento. Sugiro habilitar serviço de delivery interno para aumentar o ticket médio nessa área.',
+    chart: null },
+  { match: ['recomend','sugest','otimiz','melhora'],
+    text: '🔍 Com base nos dados atuais, aqui estão minhas 3 recomendações:\n\n<strong>1. Reforço na Food Area</strong> — Está com 60% de capacidade e tendência de alta. Abrir o corredor alternativo pode reduzir filas em 40%.\n\n<strong>2. Alerta no Palco Mundo</strong> — Projeção indica 78% de ocupação em 45 min. Considere controle de fluxo no acesso Sul.\n\n<strong>3. Kids subutilizado</strong> — Apenas 45% de ocupação. Comunicar a área via app pode distribuir melhor o público.',
+    chart: null },
+  { match: ['sensor','latenc','sistem','tecn'],
+    text: 'A infraestrutura está operando com <strong>99.98% de uptime</strong>. Latência média de 99ms (P50: 87ms, P99: 142ms). 142 de 148 sensores ativos — os 6 em standby são redundância. Sensor S-042 na Área Kids foi reconectado às 01:14:33 após queda de 2 minutos.',
+    chart: { type:'doughnut', title:'Status dos Sensores', labels:['Online','Standby','Offline'], data:[142,6,0] } },
+  { match: ['compar','ontem','histor','anterior'],
+    text: 'Comparando com o Dia 2: o público atual está <strong>+12% acima</strong> do mesmo horário de ontem (47.832 vs 42.700). O Palco Sunset surpreende com +28% de ocupação — provavelmente influenciado pelo artista anunciado. A permanência média aumentou 18 minutos.',
+    chart: { type:'bar', title:'Hoje vs. Ontem (mesmo horário)', labels:['P. Mundo','Sunset','Food','Favela','VIP'], data:[12400,8200,7200,5800,3100] } },
+];
+
+const defaultResponse = { text: 'Com base nos dados do <strong>Rock in Rio 2025</strong>, posso ajudar com análises de fluxo, ocupação por zona, recomendações operacionais, comparativos e métricas técnicas. Tente perguntar sobre uma zona específica, o pico de fluxo ou recomendações para otimizar a operação.', chart: null };
+
+const suggestions = [
+  'Qual zona está mais lotada?',
+  'Quando foi o pico de fluxo?',
+  'Dê 3 recomendações',
+  'Como está o Camarote VIP?',
+  'Comparar com ontem',
+  'Status dos sensores',
+];
+
+let iaInitialized = false;
+
+function initIA() {
+  if (iaInitialized) return;
+  iaInitialized = true;
+
+  // Sugestões
+  const sg = document.getElementById('ia-suggestions');
+  if (sg) sg.innerHTML = suggestions.map(s =>
+    `<button class="ia-suggestion-btn" onclick="useIASuggestion('${s}')">${s}</button>`
+  ).join('');
+
+  // Auto-insight
+  setTimeout(() => {
+    const el = document.getElementById('ia-auto-insight');
+    if (el) el.innerHTML = '📊 <strong>Atenção:</strong> O Palco Mundo atingiu 62% de capacidade e o fluxo de entrada acelerou +34% nos últimos 30 min. Pico estimado em <strong>45 minutos</strong>. Considere reforçar a equipe nos acessos Sul e Leste para evitar congestionamento.';
+  }, 800);
+}
+
+function useIASuggestion(text) {
+  document.getElementById('ia-input').value = text;
+  sendIAMessage();
+}
+
+function sendIAMessage() {
+  const input = document.getElementById('ia-input');
+  const msg   = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  appendIAMessage('user', msg, null);
+
+  // Typing indicator
+  const typingId = 'typing-' + Date.now();
+  const msgs = document.getElementById('ia-messages');
+  const typingEl = document.createElement('div');
+  typingEl.className = 'ia-msg bot';
+  typingEl.id = typingId;
+  typingEl.innerHTML = `<div class="ia-avatar">🤖</div><div class="ia-bubble"><div class="ia-typing"><span></span><span></span><span></span></div></div>`;
+  msgs.appendChild(typingEl);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  setTimeout(() => {
+    const el = document.getElementById(typingId);
+    if (el) el.remove();
+    const resp = findIAResponse(msg.toLowerCase());
+    appendIAMessage('bot', resp.text, resp.chart);
+  }, 1200 + Math.random()*800);
+}
+
+function findIAResponse(msg) {
+  for (const r of iaResponses) {
+    if (r.match.some(k => msg.includes(k))) return r;
+  }
+  return defaultResponse;
+}
+
+function appendIAMessage(role, text, chart) {
+  const msgs = document.getElementById('ia-messages');
+  const el   = document.createElement('div');
+  el.className = 'ia-msg ' + role;
+
+  const avatar = role === 'bot' ? '<div class="ia-avatar">🤖</div>' : '<div class="ia-avatar">AD</div>';
+  let chartHTML = '';
+
+  if (chart) {
+    const cid = 'ia-chart-' + Date.now();
+    chartHTML = `<div class="ia-chart-wrap"><div class="ia-chart-title">${chart.title}</div><div style="height:160px;position:relative;"><canvas id="${cid}"></canvas></div></div>`;
+    setTimeout(() => {
+      const colors = ['rgba(192,132,252,.8)','rgba(232,121,249,.7)','rgba(168,85,247,.7)','rgba(74,222,128,.7)','rgba(251,191,36,.7)'];
+      const cfg = chart.type === 'doughnut'
+        ? { type:'doughnut', data:{ labels:chart.labels, datasets:[{ data:chart.data, backgroundColor:colors, borderWidth:0 }] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{ legend:{ position:'right', labels:{ color:'rgba(200,180,220,.8)', font:{ family:"'IBM Plex Mono',monospace", size:9 }, boxWidth:8 } } } } }
+        : { type:chart.type, data:{ labels:chart.labels, datasets:[{ label:chart.title, data:chart.data, backgroundColor:'rgba(192,132,252,.7)', borderColor:'#c084fc', borderWidth:chart.type==='line'?2:0, fill:chart.type==='line', tension:.4, borderRadius:chart.type==='bar'?4:0, pointRadius:3, pointBackgroundColor:'#c084fc' }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ color:'rgba(76,29,149,.15)' }, ticks:{ color:'rgba(200,180,220,.7)', font:{ family:"'IBM Plex Mono',monospace", size:9 } } }, y:{ grid:{ color:'rgba(76,29,149,.15)' }, ticks:{ color:'rgba(200,180,220,.7)', font:{ family:"'IBM Plex Mono',monospace", size:9 } } } } } };
+      destroyChart(cid);
+      chartInstances[cid] = new Chart(document.getElementById(cid), cfg);
+    }, 100);
+  }
+
+  el.innerHTML = `${avatar}<div class="ia-bubble">${text.replace(/\n/g,'<br>')}${chartHTML}</div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// Inicializar IA quando a aba abrir
+const _origShowDashPage = showDashPage;
+</script>
+<script>
+// Patch showDashPage para inicializar IA
+const __origTitles = {
+  overview: ['Visão Geral', 'Rock in Rio 2025 · Dia 3 · Palco Mundo'],
+  heatmap:  ['Mapa de Calor', 'Concentração por zona · Tempo real'],
+  flow:     ['Fluxo por Hora', 'Entradas e saídas · Hoje'],
+  ranking:  ['Ranking de Zonas', 'Ocupação atual · Ordenado por densidade'],
+  metrics:  ['Métricas Técnicas', 'Infraestrutura · Sensores · Latência'],
+  ia:       ['Insights de IA', 'Análise inteligente · Rock in Rio 2025'],
+};
+function showDashPage(id, el) {
+  document.querySelectorAll('.dash-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.dash-nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.dbn-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('dp-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  // Sync bottom nav
+  const dbnEl = document.getElementById('dbn-' + id);
+  if (dbnEl) dbnEl.classList.add('active');
+  const t = __origTitles[id] || ['Dashboard',''];
+  document.getElementById('dashPageTitle').textContent = t[0];
+  document.getElementById('dashPageSub').textContent   = t[1];
+  if (id === 'ia') initIA();
+  else setTimeout(() => initChartsForPage(id), 80);
+}
+</script></body>
+</html>
